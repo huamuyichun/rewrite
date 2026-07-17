@@ -6,11 +6,11 @@
 
 项目目标是围绕现代 GPU LLM 推理编译，研究语义等价 rewrite candidates 在 FX、lowering 和最终 execution 层的塌缩、性能差异、噪声感知选择与受控测量。原始“用 GNN 选择 rewrite”已经被直接先例覆盖，不再作为方法主张。本阶段仍禁止训练任何学习模型。
 
-## 零号优先级：先完成 GitHub 仓库与提交
+## 零号优先级：先验证 GitHub 与本地同步
 
-新对话的首要交付不是启动 Phase 2 实验，而是先把当前工作树整理、测试、提交，并创建 GitHub 仓库 huamuyichun/rewrite 后 push main。SSH 已可用，gh API 认证此前未完成；先检查并修复认证。任何新的 GPU discovery 都必须排在首次远端 push 之后。
+公开仓库 https://github.com/huamuyichun/rewrite 已创建，SSH origin 已绑定，main 已首次 push。新对话先验证 gh auth、origin、工作树和 origin/main 一致，再开始 Phase 2；不要重复创建仓库。
 
-不要只创建空仓库：必须先审计并保留当前 Phase 1 最终报告、registry、monitor policy、Phase 2 adapter WIP 和旧资产清理，再形成有意义的 commit。push 后用 git remote -v、git status 和远端 branch 状态验证。
+后续每个有意义的工程阶段都要形成 commit 并 push。大型 raw artifacts、cache、模型权重和 secrets 继续只保留本地。
 
 
 ## 一、接手后的第一组动作
@@ -21,7 +21,7 @@
 2. 完整阅读 docs/rewrite_research_plan.md。
 3. 阅读 README.md、docs/reports/phase1/ 下全部 md/json、docs/artifact_policy.md。
 4. 执行 git status --short、git log --oneline -15、git diff --check。
-5. 检查当前未提交 diff，尤其是：
+5. 检查已提交但尚未完成的 Phase 2 WIP，尤其是：
    - scripts/run_phase1_audit.py
    - scripts/enumerate_candidates.py
    - scripts/analyze_phase1.py
@@ -32,12 +32,12 @@
    PYTHONPATH=src /pub/data/hjwz/miniconda3/envs/rewrite_miniexp/bin/python -m pytest -q
 7. 执行语法检查：
    PYTHONPATH=src /pub/data/hjwz/miniconda3/envs/rewrite_miniexp/bin/python -m compileall -q src scripts tests
-8. 补完或明确拆分当前 WIP，重新运行测试，形成干净本地 commit。
-9. 检查 Git/SSH/gh，创建 GitHub 仓库 huamuyichun/rewrite，设置 origin，并 push main。
+8. 确认工作树干净，拉取远端状态但不要覆盖本地历史。
+9. 检查 Git/SSH/gh、origin 和公开仓库 huamuyichun/rewrite。
 10. 验证 git remote -v、git status、当前 commit 和远端 main 一致。
-11. 远端首次 push 完成后，才确认实验进程与空闲 GPU，并且只使用一张明确空闲卡。
+11. 验证完成后，才确认实验进程与空闲 GPU，并且只使用一张明确空闲卡。
 
-不要假设当前 WIP 已完成。先读代码、修复测试、提交并 push 干净基线，再进入 Phase 2。
+不要假设当前 Phase 2 adapter WIP 已完成。先读代码、补完测试、commit 并 push，再进入 GPU discovery。
 
 ## 二、服务器硬约束
 
@@ -89,8 +89,10 @@
 - 3d76844 bounded RMSNorm family。
 - e143b5d lowered fingerprint v2。
 - e577642 Phase 1 provisional hold report。
+- 3ceeb9c Phase 1 正式关闭与 family-discovery 基础设施。
+- 0985e4a 旧 GNN/pilot 清理与完整接力文档。
 
-注意：e577642 之后还有未提交的最终 Phase 1 报告、registry、monitor policy、Phase 2 adapter WIP，以及本轮旧资产清理。先审计再形成新提交。
+上述内容已经提交并首次 push；Phase 2 adapter 是已提交但功能未完成的 WIP，必须继续补齐。
 
 ## 四、Phase 1 已经正式关闭
 
@@ -252,34 +254,25 @@ family_id=rmsnorm_residual_boundary。
 
 它被选择是因为语义容易严格验证、可以程序枚举、有机会影响 Inductor fusion/materialization，并且不是切换手写 kernel。
 
-## 十、当前未提交 WIP，必须先梳理
+## 十、已提交但尚未完成的 Phase 2 WIP
 
-当前工作树不是干净状态。不要丢失这些用户/上一轮修改：
+Phase 1 最终报告、registry、monitor policy、旧路线清理和接力文档均已提交。当前功能状态：
 
-1. artifacts/registry.jsonl：
-   已追加 qwen_s06/s07/s08 等正式 session。
-2. docs/reports/phase1/：
-   已从 provisional hold 更新为 s06-s08 的正式 pass 报告。
-3. scripts/analyze_phase1.py：
-   增加 monitor-instrumentation-policy-v1 支持。
-4. configs/profiling/phase1_monitor_policy_v1.json：
-   记录 periodic monitor failed_disabled 和 boundary-only 正式策略。
-5. scripts/enumerate_candidates.py：
-   正在改为按 config 分派 mlp_bounded / rmsnorm_bounded；检查语法和行为。
-6. src/rewrite_selector/equivalence/validator.py：
-   已开始增加可注入 input_factory，以复用 MLP/RMSNorm equivalence。
-7. scripts/run_phase1_audit.py：
-   目前只成功加入 RMSNorm imports；完整 adapter patch 在中途失败，因此 runner 仍主要是 MLP 实现。必须完成，不要误认为已经支持 RMSNorm。
-8. configs/rewrites/rmsnorm_bounded_v1.json：
-   新配置，尚未提交。
-9. 旧 GNN/pilot 清理：
-   vertify/、rewrite_miniexp/、旧 experiments 脚本、zhibiaoshiyan/ 和被主计划取代的旧 docs 已删除。
-10. README.md、docs/rewrite_research_plan.md、.gitignore、mlp_control_v1.json：
-    已修复删除后的引用，尚未提交。
-11. docs/NEXT_CODEX_PROMPT.md：
-    即本接力文档。
+1. scripts/enumerate_candidates.py 已支持 mlp_bounded / rmsnorm_bounded config 分派。
+2. src/rewrite_selector/equivalence/validator.py 已增加可注入 input_factory。
+3. scripts/run_phase1_audit.py 目前只加入 RMSNorm imports；完整 family adapter 尚未完成，runner 仍主要是 MLP 实现。
+4. configs/rewrites/rmsnorm_bounded_v1.json 已存在并提交。
+5. configs/profiling/phase1_monitor_policy_v1.json 已记录 boundary-only 正式策略。
+6. 旧 GNN/pilot 删除和主计划引用修复已提交，不要恢复。
 
-第一优先级是把这些 WIP 读清、补完、测试并形成一个干净提交。不要 git reset，不要恢复删除目录，不要覆盖 registry。
+接力前验证结果：
+
+- pytest：16 passed。
+- compileall：通过。
+- MLP enumeration CLI：19 candidates，growth 1/4/10/19。
+- RMSNorm enumeration CLI：8 candidates，growth 1/4/8。
+
+第一优先级是完成 family adapter、增加回归测试、commit 并 push。不要 git reset，不要覆盖 registry。
 
 ## 十一、旧路线清理决定
 
@@ -303,7 +296,7 @@ family_id=rmsnorm_residual_boundary。
 2. 给统一 enumeration CLI 增加 CPU 回归测试。
 3. 增加 discovery workload configs 和 profiling configs。
 4. 先做 CPU enumeration/equivalence dry run。
-5. 提交干净 commit。
+5. 提交干净 commit 并 push origin/main。
 6. 再检查一张空闲 GPU，启动小规模 discovery。
 
 建议 discovery groups，总计 17：
@@ -380,14 +373,16 @@ phase2_entry_decision 三选一：
 
 ## 十四、GitHub 状态
 
-目标仓库：huamuyichun/rewrite。
+目标仓库：https://github.com/huamuyichun/rewrite
 
-本机 Git identity 和 SSH key 已配置，ssh -T git@github.com 曾验证成功。gh 2.96.0 已安装，但 gh API device login 此前因网络/OAuth timeout 未完成。因此 GitHub 远端仓库尚未创建，当前没有 origin。
+GitHub 配置已完成：
 
-本地 commits 和工作树必须先整理好。认证可用后执行：
+- gh 已登录 huamuyichun。
+- origin 为 git@github.com:huamuyichun/rewrite.git。
+- 仓库 visibility=PUBLIC，default branch=main。
+- 本地 main 跟踪 origin/main。
+- 首次 push 已包含提交 0985e4a 及之前完整历史。
 
-- gh repo create huamuyichun/rewrite --public --source=. --remote=origin
-- git push -u origin main
 
 不要上传：
 
@@ -397,7 +392,7 @@ phase2_entry_decision 三选一：
 - 中断 session 二进制
 - secret、SSH key、token
 
-GitHub 创建和 push 仍是未完成的用户要求，不能在最终交付中遗漏。
+后续工作必须保持小步 commit，并在验证通过后 push origin/main。
 
 ## 十五、实验反馈原则
 
