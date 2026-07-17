@@ -75,7 +75,11 @@ def git_state() -> dict[str, Any]:
 
     try:
         commit = run("rev-parse", "HEAD")
-        dirty = bool(run("status", "--porcelain"))
+        status_lines = run("status", "--porcelain").splitlines()
+        dirty = any(
+            not line.endswith(" artifacts/registry.jsonl")
+            for line in status_lines
+        )
     except (OSError, subprocess.CalledProcessError):
         commit, dirty = None, True
     return {"commit": commit, "dirty": dirty}
