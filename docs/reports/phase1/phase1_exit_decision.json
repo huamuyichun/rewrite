@@ -1,0 +1,23 @@
+{
+  "allow_candidate_family_discovery": false,
+  "answers": {
+    "fingerprints_stable": true,
+    "four_execution_classes_have_stable_ordering": true,
+    "monitor_non_interfering": false,
+    "p3_p4_p5_stable_tie": true,
+    "profiler_reproducible": true,
+    "qwen_baseline_to_best_gain_exists": true,
+    "strict_pairs_reproducible": true
+  },
+  "decision": "hold_phase1_and_fix_failed_gates",
+  "failed_gates": [
+    "monitor_non_interfering"
+  ],
+  "group_id": "qwen2p5_7b_decode_bs1_t1_bf16",
+  "schema_version": "phase1-exit-decision-v1",
+  "session_ids": [
+    "qwen_s02",
+    "qwen_s04",
+    "qwen_s05"
+  ]
+}
