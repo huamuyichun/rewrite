@@ -1,8 +1,0 @@
-graph():
-    %x : 'torch.Tensor' [num_users=2] = placeholder[target=x]
-    %gate_proj : [num_users=1] = call_module[target=gate_proj](args = (%x,), kwargs = {})
-    %up_proj : [num_users=1] = call_module[target=up_proj](args = (%x,), kwargs = {})
-    %silu : [num_users=1] = call_function[target=torch.nn.functional.silu](args = (%gate_proj,), kwargs = {inplace: False})
-    %mul_ : [num_users=1] = call_method[target=mul_](args = (%silu, %up_proj), kwargs = {})
-    %down_proj : [num_users=1] = call_module[target=down_proj](args = (%mul_,), kwargs = {})
-    return down_proj

@@ -34,14 +34,6 @@ artifacts/*
 !artifacts/README.md
 !artifacts/registry.jsonl
 
-# Historical pilot: retain source and compact summaries, not raw/backend dumps.
-rewrite_miniexp/**/raw_profile.csv
-rewrite_miniexp/**/*.png
-vertify/**/raw_profile.csv
-vertify/day4/block_outputs/
-vertify/day5/block_backend_outputs/
-vertify/day5/compile_reset/block_backend_outputs/
-vertify/day5/eager/block_backend_outputs/
 
 # Model weights and large binary checkpoints
 *.safetensors

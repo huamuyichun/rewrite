@@ -5,20 +5,18 @@ PyTorch FX rewrites for modern GPU LLM inference. The current research target
 is a noise-aware, multi-fidelity policy that reduces lowering, compilation, and
 profiling cost while approaching a measured oracle.
 
-The earlier `vertify/day1-day5` work is retained as historical pilot evidence.
-It is not part of the formal dataset and must not be used to claim that a GNN
-is necessary. The canonical decision document is
+The obsolete hand-written GNN-era pilot tree was removed after its useful
+control plans were migrated into versioned configs. It is not part of the
+formal dataset. The canonical decision document is
 [`docs/rewrite_research_plan.md`](docs/rewrite_research_plan.md).
 
 ## Current Status
 
-- Phase 0: local engineering baseline established; advisor acceptance remains
-  an external exit gate.
-- Phase 1: randomized blocked profiling, independent-session output,
-  multi-input equivalence checks, environment manifests, and three-level
-  fingerprints are under active validation.
-- Model training is intentionally blocked until measurement stability,
-  lowering retention, and fixed-plan regret pass the research gates.
+- Phase 0: research scope and reproducible engineering baseline established.
+- Phase 1: complete. Independent Qwen sessions reproduce four execution
+  classes and about 6% baseline-to-best gain; periodic monitoring was found to
+  perturb timing and is disabled inside formal timing windows.
+- Phase 2: bounded candidate-family discovery is next. No model was trained.
 
 ## Environment
 
@@ -35,7 +33,7 @@ PYTHONPATH=src /pub/data/hjwz/miniconda3/envs/rewrite_miniexp/bin/python -m pyte
 ```
 
 GPU experiments must use one explicitly selected idle GPU. Every invocation
-writes a separate session directory and never overwrites historical pilot data.
+writes a separate session directory and never overwrites existing artifacts.
 
 ## Repository Layout
 
@@ -43,9 +41,8 @@ writes a separate session directory and never overwrites historical pilot data.
 - `src/rewrite_selector/`: current implementation.
 - `scripts/`: experiment entry points and aggregation.
 - `tests/`: CPU tests and opt-in GPU integration tests.
-- `docs/`: research plan, evidence inventory, and decision log.
+- `docs/`: canonical research plan, reports, and handoff material.
 - `artifacts/`: generated results, ignored by Git except for the registry.
-- `vertify/`: immutable historical pilot.
 
 
 ## License

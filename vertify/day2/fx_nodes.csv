@@ -1,8 +1,0 @@
-node_idx,name,op,target,args,users,shape,dtype
-0,x,placeholder,x,(),"gate_proj,up_proj","(1, 128, 1024)",float16
-1,gate_proj,call_module,gate_proj,"(x,)",silu,"(1, 128, 4096)",float16
-2,up_proj,call_module,up_proj,"(x,)",mul,"(1, 128, 4096)",float16
-3,silu,call_function,silu,"(gate_proj,)",mul,"(1, 128, 4096)",float16
-4,mul,call_function,mul,"(silu, up_proj)",down_proj,"(1, 128, 4096)",float16
-5,down_proj,call_module,down_proj,"(mul,)",output,"(1, 128, 1024)",float16
-6,output,output,output,"(down_proj,)",,"(1, 128, 1024)",float16

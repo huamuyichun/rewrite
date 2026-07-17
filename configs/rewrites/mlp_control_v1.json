@@ -2,7 +2,7 @@
   "schema_version": "rewrite-plan-v1",
   "family_id": "mlp_gate_up_activation_control",
   "role": "control",
-  "source": "vertify/day3/candidate_plans.json",
+  "source": "migrated_historical_control_seed",
   "plans": [
     {
       "candidate_id": "p0_baseline_separate_silu",

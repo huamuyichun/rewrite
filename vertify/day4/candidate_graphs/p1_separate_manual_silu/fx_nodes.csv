@@ -1,9 +1,0 @@
-node_idx,name,op,target,args,users,shape,dtype
-0,x,placeholder,x,(),"gate_proj,up_proj","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-1,gate_proj,call_module,gate_proj,"(x,)","sigmoid,mul","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-2,up_proj,call_module,up_proj,"(x,)",mul_1,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-3,sigmoid,call_function,sigmoid,"(gate_proj,)",mul,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-4,mul,call_function,mul,"(gate_proj, sigmoid)",mul_1,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-5,mul_1,call_function,mul,"(mul, up_proj)",down_proj,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-6,down_proj,call_module,down_proj,"(mul_1,)",output,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
-7,output,output,output,"(down_proj,)",,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"

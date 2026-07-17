@@ -1,9 +1,0 @@
-placeholder:x::gate_up_proj
-call_module:gate_up_proj:x:chunk
-call_function:chunk:gate_up_proj|2:getitem,getitem_1
-call_function:getitem:chunk|0:silu
-call_function:getitem:chunk|1:mul
-call_function:silu:getitem:mul
-call_function:mul:silu|getitem_1:down_proj
-call_module:down_proj:mul:output
-output:output:down_proj:

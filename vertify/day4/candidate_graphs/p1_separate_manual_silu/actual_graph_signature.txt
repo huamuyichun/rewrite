@@ -1,8 +1,0 @@
-placeholder:x::gate_proj,up_proj
-call_module:gate_proj:x:mul,sigmoid
-call_module:up_proj:x:mul_1
-call_function:sigmoid:gate_proj:mul
-call_function:mul:gate_proj|sigmoid:mul_1
-call_function:mul:mul|up_proj:down_proj
-call_module:down_proj:mul_1:output
-output:output:down_proj:

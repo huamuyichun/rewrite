@@ -1,4 +1,0 @@
-block_id,seq_len,hidden_dim,intermediate_dim,dtype,num_candidates,dedup_status,num_unique_actual_signatures,equivalence_status,num_equivalence_passed,out_dir
-b0_seq128_h1024_i4096,128,1024,4096,fp16,6,ok,6,ok,6,/pub/data/hjwz/rewrite/vertify/day4/block_outputs/b0_seq128_h1024_i4096
-b1_seq128_h768_i3072,128,768,3072,fp16,6,ok,6,ok,6,/pub/data/hjwz/rewrite/vertify/day4/block_outputs/b1_seq128_h768_i3072
-b2_seq512_h768_i3072,512,768,3072,fp16,6,ok,6,ok,6,/pub/data/hjwz/rewrite/vertify/day4/block_outputs/b2_seq512_h768_i3072

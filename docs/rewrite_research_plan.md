@@ -1,11 +1,13 @@
 # Rewrite 项目研究与执行计划
 
-- 更新日期：2026-07-16
+- 更新日期：2026-07-17
 - 文档状态：当前主计划
 - 目标窗口：面向 2026 年秋季投稿窗口，但以阶段门槛而不是日历驱动
 - 适用范围：`/pub/data/hjwz/rewrite`
 
-> 本文档取代 `mainline_task.md` 和 `verified_execution_roadmap.md` 作为后续决策依据。旧文档与 `vertify/day1-day5` 保留为历史记录和 pilot 证据，不删除、不改写。
+> 本文档是唯一主计划。被其取代的旧路线和手工 pilot 已在 Phase 1 完成后删除；control seeds 已迁移到版本化配置。
+>
+> 执行状态：Phase 0/1 已完成，正式结论见 `docs/reports/phase1/`；第 1 节保留的是立项时反证背景，不代表当前工程状态。
 
 ## 0. 结论先行
 
@@ -60,26 +62,65 @@
 | ICLR 适配度 | 高风险 | 如果最终只是系统 profiling + GNN，会偏系统工程；需要清楚的学习问题、OOD 结果和方法增量 |
 
 当前决策是“有条件继续”，而不是直接进入模型阶段。
+### 0.4 Phase 1 执行进展补充（2026-07-17）
+
+本节是在原计划基础上的执行记录，不替换后续阶段门槛。Phase 0 与 Phase 1 已完成，正式报告位于 docs/reports/phase1/。
+
+已经完成的工程与实验：
+
+1. 建立了正规 Git/Python 项目结构、版本化配置、CI、测试、artifact policy 和 experiment registry。
+2. profiler 已升级为 randomized blocked rounds、batched CUDA timing、独立进程 session、cold cache 记录、环境 manifest 和污染检测。
+3. 等价验证覆盖多个 seed、normal/uniform/zeros/extremes 输入、eager/compiled 输出和 alias/in-place guard。
+4. 建立 FX、lowered IR、execution 三层 fingerprint，并将正式统计单位提升为 execution class。
+5. bounded MLP enumerator 已取代“六个手工 candidate 是空间上限”的假设；默认 max depth=3、budget=32，自然产生 19 个 FX-unique candidates。
+6. 第二个 context-sensitive family 已选择 RMSNorm/residual boundary，并完成核心 IR、规则枚举器与 CPU 等价测试入口。
+
+Phase 1 的正式 Qwen canary 为 Qwen2.5-7B MLP，hidden=3584、intermediate=18944、bf16、decode、batch=1、token=1、单 A100。主统计使用三个独立 cold-cache、monitor-off session：qwen_s06、qwen_s07、qwen_s08。三次 baseline-to-best gain 分别约为 6.108%、6.023%、6.092%，winner execution class 一致，contaminated round ratio 均为 0。
+
+fingerprint 审计发现并修复了一项真实测量问题：旧 lowered hash 把 transformed-FX 中的源码行号、局部变量名和 session 路径当作 compiler 差异。修复后的 lowered fingerprint v2 只使用 ir_pre_fusion.txt 与 ir_post_fusion.txt。稳定映射为：
+
+- 6 个 FX fingerprints。
+- 4 个 lowered fingerprints。
+- 4 个 execution fingerprints。
+- p0/p2 塌缩为同一 execution class。
+- p3/p4 塌缩为同一 execution class。
+- p3/p4 class 与 p5 class 在锁定的 2% noise floor 下为稳定 tie。
+- 正式赢家为 p3/p4 对应的 fused native-SiLU execution class。
+
+monitor self-effect audit 同样改变了正式协议。同步 nvidia-smi 曾导致 SM clock 从 1410 MHz 降至 765 MHz；改用 NVML 后不再创建子进程，但周期 NVML 在 1 Hz、0.5 Hz 和约 0.333 Hz 下的 median absolute paired effect 仍分别约为 0.899%、0.546% 和 0.597%，没有通过锁定的 0.5% gate。因此周期监控被标记为 failed_disabled：正式 timing window 内 monitor_mode=off，只在 blocked timing 前后采集 NVML boundary snapshots 以检查 clock 和 foreign PID。不能将该结论写成“async monitor 无干扰”。
+
+Phase 1 exit decision 的七项 gate 已全部通过：
+
+- profiler 可复现。
+- 正式 instrumentation 不在 timing 内并发轮询。
+- 三层 fingerprint 与 execution-class mapping 跨 session 稳定。
+- strict pair 排序可复现。
+- p3/p4/p5 的 tie/collapse 结论稳定。
+- Qwen baseline-to-best gain 跨 session 存在。
+- 四个 execution classes 中存在稳定排序。
+
+因此允许进入小规模 Phase 2 candidate-family discovery，但仍不允许训练学习模型。Phase 2 必须先完成当前 MLP/RMSNorm 共用 runner adapter，再在不超过约 40 个 groups 的范围内检查 execution diversity、winner variation、fixed-plan tail regret 和 production-to-oracle gap。
 
 ## 1. 已有内容审计
 
 ### 1.1 已完成资产
 
-现有 `vertify` 流程已经完成了一个最小闭环：
+当前主线已经从早期手工 pilot 迁移到可复现实验框架。
 
-1. `day1`：锁定 PyTorch eager/Inductor、Torch FX、SwiGLU-like MLP、单卡范围。
-2. `day2`：抽取 MLP FX graph，保留 op、shape、dtype 和 dependency。
-3. `day3`：定义 6 个手工 candidate plan 及 schema。
-4. `day4`：将 candidate 实例化为 module/FX graph，做单输入数值等价和 FX signature 去重。
-5. `day5`：完成 eager/Inductor profiling，记录 raw latency、p50、CV、spread 和 half-split winner flip。
+早期最小闭环曾完成：
 
-关键文件：
+1. 锁定 PyTorch eager/Inductor、Torch FX、SwiGLU-like MLP 和单卡范围。
+2. 抽取 MLP FX graph，保留 op、shape、dtype 和 dependency。
+3. 定义 6 个 control seed plans。
+4. 实例化候选并做初步等价与 FX 去重。
+5. 完成初步 eager/Inductor profiling。
 
-- [`../vertify/output/day1_5_analysis.md`](../vertify/output/day1_5_analysis.md)
-- [`../vertify/day3/candidate_plans.json`](../vertify/day3/candidate_plans.json)
-- [`../vertify/day4/instantiate_candidates.py`](../vertify/day4/instantiate_candidates.py)
-- [`../vertify/day5/profile_candidates.py`](../vertify/day5/profile_candidates.py)
-- [`../vertify/day5/compile_reset/profile_run_summary.json`](../vertify/day5/compile_reset/profile_run_summary.json)
+原始 pilot 目录已删除，不进入正式统计。当前证据入口为：
+
+- [`reports/phase1/phase1_exit_decision.md`](reports/phase1/phase1_exit_decision.md)
+- [`reports/phase1/lowering_collapse_report.md`](reports/phase1/lowering_collapse_report.md)
+- [`../artifacts/registry.jsonl`](../artifacts/registry.jsonl)
+- [`../configs/rewrites/mlp_control_v1.json`](../configs/rewrites/mlp_control_v1.json)
 
 环境资产：
 
@@ -129,7 +170,7 @@
 
 ### 1.4 60-graph eager 实验的定位
 
-`rewrite_miniexp` 的完整实验有 60 个 graph ID、46 个唯一 workload shape、6 个 candidates，但：
+早期 eager 扩展实验曾包含 60 个 graph ID、46 个唯一 workload shape、6 个 candidates，但：
 
 - 所有 graph 都是同一 MLP 拓扑和同一 rewrite family。
 - 它没有接真实 compiler pass manager，标签是 eager CUDA latency。
@@ -632,7 +673,7 @@ pair sampling 按 group 和显著性分层，避免大量 near-tie 或同一大 
 任务：
 
 1. 与导师确认修订后的贡献边界和直接先例，特别是 Kaufman、X-RLflow、TpuGraphs、2025 cross-config ranking。
-2. 将现有 Day1-Day5 标记为 pilot，不混入正式 dataset。
+2. 将早期 pilot 排除出正式 dataset，并迁移仍有用的 control seeds。
 3. 初始化版本控制，建立 root README、环境锁、配置规范、实验 registry 和测试目录。
 4. 固化问题定义、指标、split policy 和禁止 claim。
 5. 建 literature matrix，记录论文任务、输入层级、标签、split、metric、代码和差异。
@@ -640,7 +681,7 @@ pair sampling 按 group 和显著性分层，避免大量 near-tie 或同一大 
 产出：
 
 - canonical README 和本计划。
-- `evidence_inventory`。
+- versioned experiment registry 与 Phase 1 reports。
 - environment lock 和 repo skeleton。
 - related-work matrix。
 
@@ -874,7 +915,6 @@ rewrite/
     integration/
   scripts/
   docs/
-  vertify/              # 历史 pilot，保持不动
   artifacts/            # 大结果，默认不入 Git
 ```
 
@@ -905,11 +945,11 @@ rewrite/
 
 ## 17. 接下来最先做的三件事
 
-1. **先完成 Phase 0 的课题重定位确认。** 把 Kaufman、X-RLflow、TpuGraphs、2025 cross-config ranking 和当前 fixed-p3 反证带给导师，不再按原始 GNN claim 推进。
-2. **完成 Phase 1 的 lowering/measurement audit。** 在扩数据前回答 6 个 FX candidates 到底对应多少个独立 Inductor executions，以及独立 session 的 winner 是否稳定。
-3. **并行做小规模 family discovery。** 用 production baseline 和真实 Qwen bf16 prefill/decode shape，快速淘汰 always-win 或 lowering-collapse 的 family。
+1. **先梳理并完成当前 Phase 2 runner WIP。** 保证 MLP/RMSNorm 共用 equivalence、fingerprint、execution-class 和 profiling 口径。
+2. **完成受控 family discovery。** 用真实 Qwen bf16 prefill/decode shape，快速淘汰 always-win 或 lowering-collapse 的 family，总量不超过约 40 groups。
+3. **生成 Phase 2 三份正式报告。** 依据 execution diversity、winner variation、fixed regret 和 production-to-oracle gap 决定下一路线。
 
-在这三件事完成前，不实现 GNN，不跑大规模数据，不接 Chitu 主流程。
+在 Phase 2 决策前，不训练学习模型，不跑大规模数据，不接 Chitu 主流程。
 
 ## 18. 参考链接
 
