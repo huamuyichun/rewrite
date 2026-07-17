@@ -3,7 +3,7 @@
 - 更新日期：2026-07-17
 - 文档状态：当前主计划
 - 目标窗口：面向 2026 年秋季投稿窗口，但以阶段门槛而不是日历驱动
-- 适用范围：`/pub/data/hjwz/rewrite`
+- 适用范围：Git 仓库根目录（服务器迁移见 `docs/SERVER_MIGRATION_GUIDE.md`）
 
 > 本文档是唯一主计划。被其取代的旧路线和手工 pilot 已在 Phase 1 完成后删除；control seeds 已迁移到版本化配置。
 >
@@ -77,7 +77,7 @@
 
 Phase 1 的正式 Qwen canary 为 Qwen2.5-7B MLP，hidden=3584、intermediate=18944、bf16、decode、batch=1、token=1、单 A100。主统计使用三个独立 cold-cache、monitor-off session：qwen_s06、qwen_s07、qwen_s08。三次 baseline-to-best gain 分别约为 6.108%、6.023%、6.092%，winner execution class 一致，contaminated round ratio 均为 0。
 
-fingerprint 审计发现并修复了一项真实测量问题：旧 lowered hash 把 transformed-FX 中的源码行号、局部变量名和 session 路径当作 compiler 差异。修复后的 lowered fingerprint v2 只使用 ir_pre_fusion.txt 与 ir_post_fusion.txt。稳定映射为：
+fingerprint 审计发现并修复了一项真实测量问题：旧 lowered hash 把 transformed-FX 中的源码行号、局部变量名和 session 路径当作 compiler 差异。Phase 1 正式报告使用的 lowered fingerprint v2 只使用 ir_pre_fusion.txt 与 ir_post_fusion.txt。服务器迁移后代码升级为 v3，额外归一化动态 workspace/cache 路径；v2 历史映射为：
 
 - 6 个 FX fingerprints。
 - 4 个 lowered fingerprints。
@@ -124,13 +124,13 @@ Phase 1 exit decision 的七项 gate 已全部通过：
 
 环境资产：
 
-- Conda：`/pub/data/hjwz/miniconda3/envs/rewrite_miniexp`
+- 源服务器历史 Conda 环境：Python 3.12.13；目标服务器路径不固定
 - Python：3.12.13
 - PyTorch：2.10.0+cu129
 - CUDA runtime：12.9
 - GPU：A100 40GB/80GB 多卡共享服务器
 - 本地真实模型：Qwen2.5-7B-Instruct，`hidden=3584`、`intermediate=18944`、`bf16`
-- 本地 Chitu：`/pub/data/hjwz/chitu_workspace/chitu`，当前提交 `d5cbf84`
+- 源服务器历史 Chitu（未纳入仓库）：提交 `d5cbf84`
 
 ### 1.2 正式 Inductor pilot 能说明什么
 

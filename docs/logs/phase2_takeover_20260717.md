@@ -2,7 +2,7 @@
 
 ## 审计范围
 
-- 完整阅读 /pub/data/hjwz/server_environment_prompt.txt 与 docs/NEXT_CODEX_PROMPT.md。
+- 完整阅读源服务器外部环境说明与 docs/NEXT_CODEX_PROMPT.md。
 - 完整阅读唯一研究总计划 docs/rewrite_research_plan.md。
 - 阅读 README、artifact policy 和 docs/reports/phase1 下全部 Markdown/JSON。
 - 核对项目结构、Git 状态、最近提交、origin、GitHub 登录与公开仓库状态。

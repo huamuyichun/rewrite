@@ -2,7 +2,9 @@ from __future__ import annotations
 
 import hashlib
 import json
+import os
 import re
+import sys
 from pathlib import Path
 from typing import Any
 
@@ -11,7 +13,7 @@ from torch.fx import GraphModule, symbolic_trace
 from torch.fx.passes.shape_prop import ShapeProp
 
 
-LOWERING_FINGERPRINT_VERSION = "inductor-ir-v2"
+LOWERING_FINGERPRINT_VERSION = "inductor-ir-v3"
 
 
 def _target_name(target: Any) -> str:
@@ -60,11 +62,50 @@ def high_level_fingerprint(module: torch.nn.Module, example: torch.Tensor) -> di
     }
 
 
-def _normalize_artifact_text(text: str) -> str:
+def _normalization_roots(artifact_root: Path) -> list[tuple[str, str]]:
+    candidates = [
+        (artifact_root, "/ARTIFACT/ROOT"),
+        (Path.cwd(), "/WORKSPACE/ROOT"),
+        (Path(sys.prefix), "/PYTHON/PREFIX"),
+    ]
+    for variable, replacement in (
+        ("REWRITE_ROOT", "/WORKSPACE/ROOT"),
+        ("REWRITE_ARTIFACT_ROOT", "/ARTIFACT/ROOT"),
+        ("TORCHINDUCTOR_CACHE_DIR", "/INDUCTOR/CACHE"),
+        ("TRITON_CACHE_DIR", "/TRITON/CACHE"),
+        ("TMPDIR", "/TMP/ROOT"),
+        ("XDG_CACHE_HOME", "/XDG/CACHE"),
+        ("HF_HOME", "/HF/CACHE"),
+    ):
+        value = os.environ.get(variable)
+        if value:
+            candidates.append((Path(value), replacement))
+
+    roots: dict[str, str] = {}
+    for path, replacement in candidates:
+        try:
+            resolved = str(path.expanduser().resolve())
+        except OSError:
+            resolved = str(path.expanduser())
+        if resolved not in {"/", "."}:
+            roots[resolved.rstrip("/")] = replacement
+    return sorted(roots.items(), key=lambda item: len(item[0]), reverse=True)
+
+
+def _normalize_artifact_text(text: str, artifact_root: Path) -> str:
     text = re.sub(r"0x[0-9a-fA-F]+", "0xADDR", text)
-    text = re.sub(r"/pub/data/hjwz/[^\s'\"]+", "/WORKSPACE/PATH", text)
+    for path, replacement in _normalization_roots(artifact_root):
+        text = re.sub(
+            re.escape(path) + r"[^\s'\"]*",
+            replacement + "/PATH",
+            text,
+        )
     text = re.sub(r"/tmp/[^\s'\"]+", "/TMP/PATH", text)
-    text = re.sub(r"\b\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?\b", "TIMESTAMP", text)
+    text = re.sub(
+        r"\b\d{4}-\d{2}-\d{2}[ T]\d{2}:\d{2}:\d{2}(?:\.\d+)?\b",
+        "TIMESTAMP",
+        text,
+    )
     return text
 
 
@@ -89,7 +130,10 @@ def fingerprint_inductor_artifacts(root: Path) -> dict[str, Any]:
             files.append(relative)
             if path.name not in lowered_names | code_names:
                 continue
-            text = _normalize_artifact_text(path.read_text(encoding="utf-8", errors="replace"))
+            text = _normalize_artifact_text(
+                path.read_text(encoding="utf-8", errors="replace"),
+                root,
+            )
             if path.name in lowered_names:
                 lowered_parts.append((path.name, text))
             if path.name in code_names:

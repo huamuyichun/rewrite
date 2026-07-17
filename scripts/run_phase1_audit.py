@@ -60,6 +60,29 @@ def file_sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
+def configured_artifact_root() -> Path:
+    return Path(
+        os.environ.get("REWRITE_ARTIFACT_ROOT", ROOT / "artifacts")
+    ).expanduser()
+
+
+def configured_registry_path() -> Path:
+    return Path(
+        os.environ.get(
+            "REWRITE_REGISTRY_PATH",
+            configured_artifact_root() / "registry.jsonl",
+        )
+    ).expanduser()
+
+
+def path_for_record(path: Path) -> str:
+    resolved = path.resolve()
+    try:
+        return str(resolved.relative_to(ROOT.resolve()))
+    except ValueError:
+        return str(resolved)
+
+
 def git_state() -> dict[str, Any]:
     def run(*args: str) -> str:
         return subprocess.check_output(
@@ -448,9 +471,9 @@ def registry_entry(
         "source_dirty_at_run": source["dirty"],
         "source_state": "git",
         "config_sha256": file_sha256(resolved_config),
-        "artifact_path": str(session_dir.relative_to(ROOT)),
-        "environment_manifest_path": str(
-            (session_dir / "environment.json").relative_to(ROOT)
+        "artifact_path": path_for_record(session_dir),
+        "environment_manifest_path": path_for_record(
+            session_dir / "environment.json"
         ),
         "cache_policy": cache_policy,
         "cache_preexisting": cache_preexisting,
@@ -495,7 +518,12 @@ def main() -> None:
     parser.add_argument(
         "--output-root",
         type=Path,
-        default=ROOT / "artifacts/phase1",
+        default=configured_artifact_root() / "phase1",
+    )
+    parser.add_argument(
+        "--registry",
+        type=Path,
+        default=configured_registry_path(),
     )
     args = parser.parse_args()
 
@@ -616,7 +644,7 @@ def main() -> None:
             reason=reason,
         )
         write_json(session_dir / "status.json", entry)
-        append_registry(ROOT / "artifacts/registry.jsonl", entry)
+        append_registry(args.registry, entry)
 
     print(json.dumps(summary, indent=2))
 

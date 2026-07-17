@@ -1,0 +1,41 @@
+{
+  "schema_version": "profiling-protocol-v2",
+  "backend": "compile",
+  "rounds": 20,
+  "warmup_per_round": 1,
+  "samples_per_round": 2,
+  "iterations_per_sample": 20,
+  "precondition_seconds": 2,
+  "monitor_mode": "off",
+  "monitor_backend": "nvml",
+  "monitor_interval_seconds": 1,
+  "bootstrap_resamples": 1000,
+  "randomization_seed": 20260716,
+  "cache_policy": "cold_session",
+  "profile_execution_classes": true,
+  "fingerprint_noise_floor_relative": 0.02,
+  "same_class_audit": {
+    "enabled": true,
+    "include_all_candidates": true,
+    "rounds": 5,
+    "warmup_per_round": 1,
+    "samples_per_round": 1,
+    "precondition_seconds": 0.25
+  },
+  "equivalence": {
+    "seeds": [0, 1, 17],
+    "distributions": ["normal", "uniform", "zeros", "extremes"],
+    "atol_by_dtype": {
+      "fp16": 0.01,
+      "bf16": 0.05,
+      "fp32": 0.00001
+    },
+    "rtol_by_dtype": {
+      "fp16": 0.02,
+      "bf16": 0.02,
+      "fp32": 0.00001
+    },
+    "atol": 0.01,
+    "rtol": 0.02
+  }
+}

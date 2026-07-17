@@ -172,6 +172,18 @@ def environment_manifest() -> dict[str, Any]:
         "cuda_runtime": torch.version.cuda,
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", ""),
         "torchinductor_cache_dir": os.environ.get("TORCHINDUCTOR_CACHE_DIR", ""),
+        "path_config": {
+            key: os.environ.get(key, "")
+            for key in (
+                "REWRITE_ROOT",
+                "REWRITE_ARTIFACT_ROOT",
+                "REWRITE_REGISTRY_PATH",
+                "QWEN_MODEL_DIR",
+                "TMPDIR",
+                "XDG_CACHE_HOME",
+                "HF_HOME",
+            )
+        },
         "driver": _run(
             ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
         ),

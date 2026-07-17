@@ -10,6 +10,7 @@ dist/
 build/
 *.egg-info/
 .venv/
+.local-data/
 
 # Local secrets and editor state
 .env
