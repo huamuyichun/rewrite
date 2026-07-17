@@ -1,0 +1,7 @@
+{
+  "schema_version": "rewrite-enumerator-config-v1",
+  "family_id": "mlp_gate_up_activation_control",
+  "enumerator": "mlp_bounded",
+  "max_rewrite_depth": 3,
+  "max_fx_unique_candidates": 32
+}

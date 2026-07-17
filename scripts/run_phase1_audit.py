@@ -45,10 +45,33 @@ from rewrite_selector.lowering.fingerprint import (
 )
 from rewrite_selector.profiling.blocked import run_blocked_rounds
 from rewrite_selector.profiling.environment import environment_manifest
+from rewrite_selector.rewrites.mlp_enumerator import enumerate_mlp_candidates
 
 
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
+
+
+def resolve_rewrite_config(config: dict[str, Any]) -> dict[str, Any]:
+    if "plans" in config:
+        return config
+    if config.get("enumerator") != "mlp_bounded":
+        raise ValueError(
+            f"unsupported enumerator: {config.get('enumerator')}"
+        )
+    enumeration = enumerate_mlp_candidates(
+        max_depth=int(config["max_rewrite_depth"]),
+        max_candidates=int(config["max_fx_unique_candidates"]),
+    )
+    return {
+        **config,
+        "plans": enumeration["candidates"],
+        "enumeration_summary": {
+            key: value
+            for key, value in enumeration.items()
+            if key not in {"candidates", "enumeration_tree"}
+        },
+    }
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -498,7 +521,7 @@ def main() -> None:
     cache_preexisting = cache_dir.exists() and any(cache_dir.iterdir())
     os.environ["TORCHINDUCTOR_CACHE_DIR"] = str(cache_dir)
 
-    rewrite_config = read_json(args.rewrites)
+    rewrite_config = resolve_rewrite_config(read_json(args.rewrites))
     workload_config = read_json(args.workloads)
     protocol = read_json(args.protocol)
     if args.monitor_mode is not None:
