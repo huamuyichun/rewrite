@@ -47,12 +47,13 @@ def validate_callable(
     distributions: list[str],
     atol: float,
     rtol: float,
+    input_factory: Callable[..., torch.Tensor] = make_input,
 ) -> dict[str, Any]:
     cases: list[dict[str, Any]] = []
     with torch.no_grad():
         for seed in seeds:
             for distribution in distributions:
-                example = make_input(workload, device, dtype, seed, distribution)
+                example = input_factory(workload, device, dtype, seed, distribution)
                 expected = reference(example)
                 actual = candidate(example)
                 metrics = error_metrics(expected, actual)

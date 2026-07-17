@@ -31,6 +31,30 @@ def monitor_assessment(path: Path | None) -> dict[str, Any]:
             "reason": "no clean within-process self-effect result",
         }
     result = json.loads(path.read_text())
+    if result.get("schema_version") == "monitor-instrumentation-policy-v1":
+        selected_mode = result.get("selected_timing_monitor_mode")
+        boundary_enabled = bool(result.get("boundary_snapshots_enabled"))
+        contaminated = bool(result.get("contaminated", True))
+        clock_stable = bool(result.get("clock_stable", False))
+        passed = (
+            selected_mode == "off"
+            and boundary_enabled
+            and not contaminated
+            and clock_stable
+        )
+        return {
+            "status": "pass" if passed else "failed",
+            "pass": passed,
+            "selected_timing_monitor_mode": selected_mode,
+            "boundary_snapshots_enabled": boundary_enabled,
+            "periodic_monitor_verdict": result.get("periodic_monitor_verdict"),
+            "contaminated": contaminated,
+            "clock_stable": clock_stable,
+            "protocol": result.get("protocol", {}),
+            "evidence": result.get("evidence", []),
+            "artifact_path": str(path),
+            "reason": result.get("reason"),
+        }
     contaminated = bool(result.get("contaminated", True))
     max_delta = float(result["max_absolute_relative_delta"])
     clock_stable = bool(result.get("clock_stable", False))

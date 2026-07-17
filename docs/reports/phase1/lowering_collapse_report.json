@@ -2,10 +2,9 @@
   "all_fingerprints_stable": true,
   "execution_class_mapping_stable": true,
   "execution_class_winner_counts": {
-    "exec_0bf2a7f792dc1e22": 1,
-    "exec_694a3e9839b6ac43": 2
+    "exec_694a3e9839b6ac43": 3
   },
-  "execution_class_winner_reproducibility": 0.6666666666666666,
+  "execution_class_winner_reproducibility": 1.0,
   "execution_classes": [
     {
       "candidate_ids": [
@@ -117,17 +116,17 @@
     "p3_p4_collapsed": true,
     "p3_p5_label": "tie",
     "p3_p5_relative_deltas": [
-      -0.0007077568199275186,
-      0.0013718567330474052,
-      0.0012810798432671966
+      0.0021945181585327767,
+      0.00164515776324059,
+      0.0015550155876402627
     ],
     "p4_execution_class_id": "exec_694a3e9839b6ac43",
     "p5_execution_class_id": "exec_0bf2a7f792dc1e22"
   },
   "schema_version": "lowering-collapse-report-v1",
   "session_ids": [
-    "qwen_s02",
-    "qwen_s04",
-    "qwen_s05"
+    "qwen_s06",
+    "qwen_s07",
+    "qwen_s08"
   ]
 }

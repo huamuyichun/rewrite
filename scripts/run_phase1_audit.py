@@ -39,6 +39,12 @@ from rewrite_selector.ir.mlp import (
     make_input,
     set_seed,
 )
+from rewrite_selector.ir.rmsnorm import (
+    RMSNormWorkload,
+    instantiate_rmsnorm_candidate,
+    make_rmsnorm_baseline,
+    make_rmsnorm_input,
+)
 from rewrite_selector.lowering.fingerprint import (
     fingerprint_inductor_artifacts,
     high_level_fingerprint,
@@ -46,6 +52,9 @@ from rewrite_selector.lowering.fingerprint import (
 from rewrite_selector.profiling.blocked import run_blocked_rounds
 from rewrite_selector.profiling.environment import environment_manifest
 from rewrite_selector.rewrites.mlp_enumerator import enumerate_mlp_candidates
+from rewrite_selector.rewrites.rmsnorm_enumerator import (
+    enumerate_rmsnorm_candidates,
+)
 
 
 def read_json(path: Path) -> dict[str, Any]:

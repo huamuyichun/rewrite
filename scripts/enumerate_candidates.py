@@ -12,6 +12,15 @@ if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
 from rewrite_selector.rewrites.mlp_enumerator import enumerate_mlp_candidates
+from rewrite_selector.rewrites.rmsnorm_enumerator import (
+    enumerate_rmsnorm_candidates,
+)
+
+
+ENUMERATORS = {
+    "mlp_bounded": enumerate_mlp_candidates,
+    "rmsnorm_bounded": enumerate_rmsnorm_candidates,
+}
 
 
 def main() -> None:
@@ -26,9 +35,12 @@ def main() -> None:
     if args.output.exists():
         raise FileExistsError(args.output)
     config = json.loads(args.config.read_text())
-    if config.get("enumerator") != "mlp_bounded":
-        raise ValueError(f"unsupported enumerator: {config.get('enumerator')}")
-    result = enumerate_mlp_candidates(
+    enumerator_name = str(config.get("enumerator"))
+    try:
+        enumerator = ENUMERATORS[enumerator_name]
+    except KeyError as exc:
+        raise ValueError(f"unsupported enumerator: {enumerator_name}") from exc
+    result = enumerator(
         max_depth=int(config["max_rewrite_depth"]),
         max_candidates=int(config["max_fx_unique_candidates"]),
     )
@@ -48,6 +60,7 @@ def main() -> None:
                     "budget_truncated",
                     "candidate_growth_by_depth",
                 )
+                if key in result
             },
             indent=2,
         )

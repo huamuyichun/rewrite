@@ -1,78 +1,78 @@
 {
-  "baseline_to_best_gain_median": 0.060545081796510525,
-  "baseline_to_best_gain_min": 0.044778424275072615,
+  "baseline_to_best_gain_median": 0.06092205702672282,
+  "baseline_to_best_gain_min": 0.06023212242248199,
   "baseline_to_best_gains": [
-    0.044778424275072615,
-    0.060545081796510525,
-    0.06085282657841806
+    0.06108261476468124,
+    0.06023212242248199,
+    0.06092205702672282
   ],
   "best_fixed_execution_class": {
     "execution_class_id": "exec_694a3e9839b6ac43",
-    "max_regret": 0.0007082580944242078,
+    "max_regret": 0.0,
     "median_regret": 0.0,
-    "p90_regret": 0.0005666064755393663,
+    "p90_regret": 0.0,
     "regrets": [
-      0.0007082580944242078,
+      0.0,
       0.0,
       0.0
     ],
-    "win_share": 0.6666666666666666
+    "win_share": 1.0
   },
   "fixed_execution_class_rows": [
     {
       "execution_class_id": "exec_0bf2a7f792dc1e22",
-      "max_regret": 0.0013718567330474052,
-      "median_regret": 0.0012810798432671966,
-      "p90_regret": 0.0013537013550913636,
+      "max_regret": 0.0021945181585327767,
+      "median_regret": 0.00164515776324059,
+      "p90_regret": 0.0020846460794743393,
       "regrets": [
-        0.0,
-        0.0013718567330474052,
-        0.0012810798432671966
+        0.0021945181585327767,
+        0.00164515776324059,
+        0.0015550155876402627
       ],
-      "win_share": 0.3333333333333333
+      "win_share": 0.0
     },
     {
       "execution_class_id": "exec_239a10e65d521e49",
-      "max_regret": 0.05472176184954103,
-      "median_regret": 0.05414302692445583,
-      "p90_regret": 0.05460601486452399,
+      "max_regret": 0.05442733460633398,
+      "median_regret": 0.05404165965151542,
+      "p90_regret": 0.054350199615370264,
       "regrets": [
-        0.044306276642819276,
-        0.05414302692445583,
-        0.05472176184954103
+        0.05404165965151542,
+        0.05401700631934814,
+        0.05442733460633398
       ],
       "win_share": 0.0
     },
     {
       "execution_class_id": "exec_241eedbb848ce50e",
-      "max_regret": 0.06085282657841806,
-      "median_regret": 0.060545081796510525,
-      "p90_regret": 0.06079127762203655,
+      "max_regret": 0.06108261476468124,
+      "median_regret": 0.06092205702672282,
+      "p90_regret": 0.06105050321708956,
       "regrets": [
-        0.044778424275072615,
-        0.060545081796510525,
-        0.06085282657841806
+        0.06108261476468124,
+        0.06023212242248199,
+        0.06092205702672282
       ],
       "win_share": 0.0
     },
     {
       "execution_class_id": "exec_694a3e9839b6ac43",
-      "max_regret": 0.0007082580944242078,
+      "max_regret": 0.0,
       "median_regret": 0.0,
-      "p90_regret": 0.0005666064755393663,
+      "p90_regret": 0.0,
       "regrets": [
-        0.0007082580944242078,
+        0.0,
         0.0,
         0.0
       ],
-      "win_share": 0.6666666666666666
+      "win_share": 1.0
     }
   ],
   "group_id": "qwen2p5_7b_decode_bs1_t1_bf16",
   "schema_version": "fixed-baseline-report-v1",
   "session_ids": [
-    "qwen_s02",
-    "qwen_s04",
-    "qwen_s05"
+    "qwen_s06",
+    "qwen_s07",
+    "qwen_s08"
   ]
 }
