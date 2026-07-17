@@ -1,0 +1,60 @@
+# Python and test tooling
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+.mypy_cache/
+.coverage
+htmlcov/
+dist/
+build/
+*.egg-info/
+.venv/
+
+# Local secrets and editor state
+.env
+.env.*
+!.env.example
+.idea/
+.vscode/
+*~
+*.swp
+
+# Compiler/runtime caches and generated code
+.torchinductor/
+.triton/
+**/inductor_cache/
+**/torchinductor/
+**/triton_cache/
+**/*.tmp
+*.log
+
+# Experiment artifacts are local. Only policy and compact registry are tracked.
+artifacts/*
+!artifacts/README.md
+!artifacts/registry.jsonl
+
+# Historical pilot: retain source and compact summaries, not raw/backend dumps.
+rewrite_miniexp/**/raw_profile.csv
+rewrite_miniexp/**/*.png
+vertify/**/raw_profile.csv
+vertify/day4/block_outputs/
+vertify/day5/block_backend_outputs/
+vertify/day5/compile_reset/block_backend_outputs/
+vertify/day5/eager/block_backend_outputs/
+
+# Model weights and large binary checkpoints
+*.safetensors
+*.ckpt
+*.pt
+*.pth
+*.onnx
+*.bin
+
+# Legacy zero-byte scratch markers kept locally for provenance.
+/gate_proj
+/up_proj
+/down_proj
+/silu
+/mul
+/output

@@ -1,0 +1,9 @@
+placeholder:x::gate_up_proj
+call_module:gate_up_proj:x:split
+call_function:split:gate_up_proj|4096:getitem,getitem_1
+call_function:getitem:split|0:silu
+call_function:getitem:split|1:mul_
+call_function:silu:getitem:mul_
+call_method:mul_:silu|getitem_1:down_proj
+call_module:down_proj:mul_:output
+output:output:down_proj:

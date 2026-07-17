@@ -1,0 +1,219 @@
+以下是当前对话的完整续聊上下文，请你直接接上，不要让我重复背景，也不要先泛泛复述。你的输出语言使用中文，风格保持简洁、直接、少废话。
+
+====================
+一、对话总结
+====================
+
+我当前的主课题已经基本确定为：
+Graph-level latency estimator for rewrite plan selection
+
+目标是：
+在 2026 年 10 月前，做出一篇可投稿 ICLR 的工作。
+
+这不是一个泛泛的“用 GNN 加速推理”的题，而是更具体地落在：
+大模型推理系统中的图优化 / 编译优化层。
+
+核心问题不是 runtime 调度，也不是在线 serving 调度，而是：
+给定原始计算图和若干语义等价的 candidate rewrite plans，在真实执行前预测不同 plan 的图级执行效果，并在有限搜索预算下选到更优 plan。
+
+我们已经明确过的关键判断如下：
+
+1. 课题定位
+- 这是一个 rewrite plan selection 问题，不是简单 latency regression 问题。
+- 真正要优化的是 selection quality，而不是只追求预测毫秒数更准。
+- 更合适的任务形式是 ranking-oriented，尤其是 pairwise ranking，可辅以 delta-latency regression。
+
+2. 为什么这个题成立
+- rewrite 的真实性能收益往往不是局部决定的，而会受到图级结构、上下游邻域、layout 传播、fusion 机会、memory movement、lowering 结果等共同影响。
+- 因此“单算子代价求和”或“局部启发式”可能不够，需要显式建模图结构或至少建模作用域子图。
+- 但不能先验假设 GNN 一定更好，必须靠实验验证；图模型只是一个有根据的候选方法，不是结论。
+
+3. 推荐的方法主线
+- 输入对象：候选 rewrite 后得到的 candidate graph，或 rewrite 作用域扩张后的局部图。
+- 目标：对候选 plans 打分或排序。
+- 主任务：pairwise ranking。
+- 辅助任务：delta-latency regression。
+- 评价重点：fixed-budget 下的 plan selection quality，例如 top-1 accuracy、regret、固定预算下选中 plan 的 latency。
+
+4. 系统位置
+- 该方法更适合插在：候选 rewrite plans 枚举之后、真实编译 / lowering / autotuning / profile 之前。
+- 它本质上是 graph optimizer 里的 rewrite-plan ranking / cost-model 层。
+- 因此它仍可算作“大模型推理服务相关课题”，但更准确地说，是服务系统栈里的离线图优化 / 编译优化层方法，而不是在线请求调度层。
+
+5. 范围收缩
+为了保证 ICLR 截稿前能闭环，当前建议的最小可行范围是：
+- 单卡 GPU
+- 单一 backend
+- 离线实验
+- 只选 1 到 2 类高频 block
+- 只做少量 rewrite family
+
+优先 block：
+- Transformer MLP block
+- Attention 相关 block
+
+优先 rewrite family：
+- fusion-related rewrites
+- transpose / layout movement
+- reassociation / elementwise reorder
+
+暂时不做：
+- 多 backend 联合建模
+- 全模型任意 rewrite
+- 大规模 e-graph 全空间搜索
+- 在线 runtime 集成
+- 多机多卡实验
+
+6. 数据与实验框架
+计划是：
+- 从开源 LLM block 中抽取高频子图
+- 转成统一 IR（如 ONNX / Torch FX / Relay 中的一种）
+- 枚举有限个合法 rewrite plans
+- 对每个候选做真实编译与 profile
+- 形成 (原图, 候选 plan 图, 条件, latency / ranking label) 数据
+
+baseline 至少包括：
+- 规则启发式
+- op-wise latency sum / FLOPs+bytes proxy
+- graph summary + MLP
+- handcrafted features + XGBoost
+- linearized graph + Transformer/MLP
+- oracle best plan
+
+关键指标包括：
+- pairwise accuracy
+- Spearman / Kendall tau
+- top-k hit rate
+- top-1 plan selection accuracy
+- regret relative to oracle
+- fixed-budget selected-plan latency
+- search cost reduction
+
+真正关键的问题是：
+在相同搜索预算下，能否稳定选到更快的 rewrite plan。
+
+7. 风险判断
+已经明确过的主要风险有：
+- 图模型可能不显著优于简单模型
+- latency 标签噪声较大
+- 前端 rewrite 差异可能被后端 lowering 抹平
+- 审稿人可能觉得问题过于工程化
+
+对应的应对策略包括：
+- 优先选择图级交互更强的 rewrite family
+- 做强 baseline，避免虚假优势
+- 固定 profile 环境，多次测量取中位数
+- 先验证 candidate diversity 是否真实存在
+- 强调 equivalent graph space 上的 learning decision 问题，而不是某个系统 patch
+
+8. 与 chitu 的关系
+导师项目依托代码库是 chitu，路径在：
+/Users/hmyc/Codefield/project/chitu
+
+之前已经做过初步代码定位，得到的结论是：
+- chitu 更像 runtime / backend / scheduler / execution 框架
+- 目前看不太像有一个成熟、现成、可直接修改的 graph rewrite pass manager
+- 所以这个课题的方法主体，大概率不应该一开始就硬塞进 serving 主流程
+
+目前更推荐的工程路线是：
+- 先把课题做成独立的离线研究原型
+- 再把 chitu 当作 block 来源、执行宿主、benchmark 容器、后续验证平台
+- 等方法和实验站稳后，再考虑轻量接回 chitu 的真实执行链做系统层验证
+
+也就是说，当前建议是：
+先研究、后接入；先证明问题成立，再考虑 serving integration。
+
+9. 代码量判断
+之前讨论过，这个方向如果先做独立原型，代码量是可控的。
+大致估计：
+- 最小可跑版本：几百到一千多行
+- 第一版较完整原型：约一千到两千行量级
+真正重的是数据构造、候选 plan 枚举、profile 流水线和实验设计，不是把模型塞进 serving 主流程本身。
+
+10. 已生成的重要文件
+当前目录：
+/Users/hmyc/Documents/project/rewrite
+
+里面已有：
+- mainline_task.md
+
+该文件已经写过一版较完整主线，内容包括：
+- 课题定位
+- 研究问题定义
+- 方法主张
+- 数据构造
+- baseline
+- 实验指标
+- 风险
+- 执行路线
+
+如果你需要继续推进，请把它作为现有草案来参考，不要无视它。
+
+11. 我的工作偏好与硬要求
+这些要求必须严格遵守：
+- 用中文回答
+- 简洁、直接、少空话
+- 不要把不确定内容说成确定事实
+- 涉及文献、事实、相关工作、已有方法、是否有人做过、是否适合投稿、术语定义等内容时，必须先做实际检索验证
+- 做开放式搜索、代码库探索、多步调研时，优先使用 subagent，避免主对话上下文爆炸
+- 返回主对话时，只保留必要结论、来源和不确定点
+- 不要默认赞同我；如果我的想法有问题，请直接指出
+- 不要把课题做宽，优先收缩到能在 ICLR 时间点前形成最小可发表单元
+
+====================
+二、你接下来应该如何继续
+====================
+
+你现在不是重新开始，而是基于以上上下文继续帮我推进这个课题。
+请直接进入实质工作，不要先寒暄，不要先泛泛总结一遍。
+
+接下来的工作原则：
+- 目标是尽快把这个题压缩成能落地、能做实验、能投稿的最小研究闭环
+- 所有建议都要优先考虑：问题是否够硬、实验是否闭环快、贡献是否清楚、风险是否可控
+- 如果要比较多个方案，请明确告诉我你推荐哪一个，以及为什么
+- 如果要给方案，尽量给到可执行粒度，而不是空泛方向
+- 如果涉及相关工作或事实判断，请先搜索验证再回答
+
+====================
+三、可直接继续的新任务（你可按我下一句话衔接）
+====================
+
+下面这些任务都是当前最自然的继续方向，你可以根据我下一句话直接开展：
+
+1. 继续收缩课题
+例如：帮我把这个题进一步压缩成一个最小可投稿问题，明确 block、rewrite family、IR、baseline、指标。
+
+2. 设计两周执行计划
+例如：给我接下来两周每天或每 2 天的推进安排，要求非常具体。
+
+3. 做相关工作核查
+例如：搜索并验证是否已有与 graph-level rewrite plan ranking / learned plan selection / graph cost model 高度重合的工作，判断 novelty 风险。
+
+4. 继续定位 chitu 接入点
+例如：基于 chitu 的代码结构，继续分析后续如果要做轻量集成，最合适插在哪里，哪些文件最关键。
+
+5. 细化实验设计
+例如：帮我把 dataset construction、label design、baseline、evaluation protocol 写成可直接执行的实验方案。
+
+6. 细化方法设计
+例如：如果不用太重的 GNN，先从哪些更稳的结构化模型做起，怎样设计输入特征和 ranking objective。
+
+====================
+四、给新对话里的 Claude 的直接指令
+====================
+
+请基于以上上下文继续协助我推进课题：Graph-level latency estimator for rewrite plan selection。
+
+我的目标是：在 2026 年 10 月前把它做成一篇可投稿 ICLR 的工作。请始终以“最小可发表单元、问题定义硬、实验闭环快、风险可控”为最高优先级。
+
+请遵守以下要求：
+1. 用中文回答，保持简洁、直接、少废话。
+2. 对任何文献、事实、已有工作、是否有人做过、是否适合投稿、概念定义等结论，先搜索验证，再回答。
+3. 做开放式搜索或代码库探索时，优先使用 subagent，避免主对话上下文膨胀。
+4. 不要默认 GNN 一定有效；应把它当作待验证的候选方法。
+5. 优先帮我把问题收缩到单卡、单 backend、离线、少数 block、少数 rewrite family 的范围内。
+6. 如果需要结合代码，请把 chitu 视为后续验证平台，而不是当前一开始就要深改的 serving 主流程。
+7. 如果我的想法有问题，请直接指出，不要迎合。
+8. 输出尽量给到可执行粒度，而不是泛泛而谈。
+
+如果你明白了，就直接承接我下一条消息，不要重复这份上下文。

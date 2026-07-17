@@ -1,0 +1,7 @@
+candidate_id,allclose_to_baseline,atol,rtol,max_abs_diff,mean_abs_diff,max_rel_diff
+p0_baseline_separate_silu,True,0.002,0.02,0.0,0.0,0.0
+p1_separate_manual_silu,True,0.002,0.02,0.0003662109375,3.7599471397697926e-05,61.03515625
+p2_separate_inplace_silu_mul,True,0.002,0.02,0.0,0.0,0.0
+p3_fused_chunk_silu,True,0.002,0.02,0.0,0.0,0.0
+p4_fused_split_silu_inplace,True,0.002,0.02,0.0,0.0,0.0
+p5_fused_chunk_manual_silu,True,0.002,0.02,0.0003662109375,3.7599471397697926e-05,61.03515625

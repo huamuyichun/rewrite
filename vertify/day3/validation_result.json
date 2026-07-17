@@ -1,0 +1,14 @@
+{
+  "status": "ok",
+  "num_candidates": 6,
+  "num_baselines": 1,
+  "baseline_ids": [
+    "p0_baseline_separate_silu"
+  ],
+  "rewrite_families": [
+    "fusion_related_gate_up_projection"
+  ],
+  "num_unique_candidate_ids": 6,
+  "num_unique_structural_signatures": 6,
+  "errors": []
+}

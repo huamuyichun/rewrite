@@ -1,0 +1,11 @@
+node_idx,name,op,target,args,users,shape,dtype
+0,x,placeholder,x,(),gate_up_proj,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+1,gate_up_proj,call_module,gate_up_proj,"(x,)",chunk,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+2,chunk,call_function,chunk,"(gate_up_proj, 2)","getitem,getitem_1","[(1, 128, 4096), (1, 128, 4096)]","['float16', 'float16']"
+3,getitem,call_function,getitem,"(chunk, 0)","sigmoid,mul","['Size', 'dtype', 'bool', 'tuple', 'NoneType', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'NoneType', 'bool', 'dict']"
+4,getitem_1,call_function,getitem,"(chunk, 1)",mul_1,"['Size', 'dtype', 'bool', 'tuple', 'NoneType', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'NoneType', 'bool', 'dict']"
+5,sigmoid,call_function,sigmoid,"(getitem,)",mul,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+6,mul,call_function,mul,"(getitem, sigmoid)",mul_1,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+7,mul_1,call_function,mul,"(mul, getitem_1)",down_proj,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+8,down_proj,call_module,down_proj,"(mul_1,)",output,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+9,output,output,output,"(down_proj,)",,"['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']","['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"

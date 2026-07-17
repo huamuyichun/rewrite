@@ -1,0 +1,29 @@
+[
+  {
+    "block_id": "b0_seq128_h1024_i4096",
+    "batch_size": 1,
+    "seq_len": 128,
+    "hidden_dim": 1024,
+    "intermediate_dim": 4096,
+    "dtype": "fp16",
+    "seed": 20260526
+  },
+  {
+    "block_id": "b1_seq128_h768_i3072",
+    "batch_size": 1,
+    "seq_len": 128,
+    "hidden_dim": 768,
+    "intermediate_dim": 3072,
+    "dtype": "fp16",
+    "seed": 20260527
+  },
+  {
+    "block_id": "b2_seq512_h768_i3072",
+    "batch_size": 1,
+    "seq_len": 512,
+    "hidden_dim": 768,
+    "intermediate_dim": 3072,
+    "dtype": "fp16",
+    "seed": 20260528
+  }
+]

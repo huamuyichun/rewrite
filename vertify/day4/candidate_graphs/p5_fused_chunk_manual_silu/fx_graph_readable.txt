@@ -1,0 +1,11 @@
+graph():
+    %x : 'torch.Tensor' [num_users=1] = placeholder[target=x]
+    %gate_up_proj : [num_users=1] = call_module[target=gate_up_proj](args = (%x,), kwargs = {})
+    %chunk : [num_users=2] = call_function[target=torch.chunk](args = (%gate_up_proj, 2), kwargs = {dim: -1})
+    %getitem : [num_users=2] = call_function[target=operator.getitem](args = (%chunk, 0), kwargs = {})
+    %getitem_1 : [num_users=1] = call_function[target=operator.getitem](args = (%chunk, 1), kwargs = {})
+    %sigmoid : [num_users=1] = call_function[target=torch.sigmoid](args = (%getitem,), kwargs = {})
+    %mul : [num_users=1] = call_function[target=operator.mul](args = (%getitem, %sigmoid), kwargs = {})
+    %mul_1 : [num_users=1] = call_function[target=operator.mul](args = (%mul, %getitem_1), kwargs = {})
+    %down_proj : [num_users=1] = call_module[target=down_proj](args = (%mul_1,), kwargs = {})
+    return down_proj

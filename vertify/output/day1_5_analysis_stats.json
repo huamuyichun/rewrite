@@ -1,0 +1,16 @@
+{
+  "candidate_count_distribution": {
+    "6": 3
+  },
+  "unique_candidate_count_distribution": {
+    "6": 3
+  },
+  "spread_median": 0.12500004330927195,
+  "spread_p90": 0.12557140416182855,
+  "candidate_latency_cv_median": 0.04142794991701013,
+  "candidate_latency_cv_p90": 0.05218483587267276,
+  "winner_flip_count": 1,
+  "num_blocks": 3,
+  "num_candidates": 18,
+  "raw_count": 720
+}

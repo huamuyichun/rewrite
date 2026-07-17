@@ -1,0 +1,27 @@
+{
+  "schema_version": "workload-v1",
+  "workloads": [
+    {
+      "group_id": "pilot_b0_seq128_h1024_i4096_fp16",
+      "model_id": "synthetic_pilot",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 128,
+      "hidden_dim": 1024,
+      "intermediate_dim": 4096,
+      "dtype": "fp16",
+      "seed": 20260526
+    },
+    {
+      "group_id": "qwen2p5_7b_decode_bs1_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 1,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260716
+    }
+  ]
+}

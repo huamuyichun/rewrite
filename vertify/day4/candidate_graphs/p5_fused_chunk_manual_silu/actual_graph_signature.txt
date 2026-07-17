@@ -1,0 +1,10 @@
+placeholder:x::gate_up_proj
+call_module:gate_up_proj:x:chunk
+call_function:chunk:gate_up_proj|2:getitem,getitem_1
+call_function:getitem:chunk|0:mul,sigmoid
+call_function:getitem:chunk|1:mul_1
+call_function:sigmoid:getitem:mul
+call_function:mul:getitem|sigmoid:mul_1
+call_function:mul:mul|getitem_1:down_proj
+call_module:down_proj:mul_1:output
+output:output:down_proj:

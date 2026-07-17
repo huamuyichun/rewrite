@@ -1,0 +1,62 @@
+[
+  {
+    "candidate_id": "p0_baseline_separate_silu",
+    "is_baseline": true,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "baseline: separate gate_proj and up_proj, F.silu(gate) * up, then down_proj",
+    "day3_structural_signature": "separate|none|f_silu|out_of_place",
+    "actual_signature_hash": "38e90e5d5fe9dd67",
+    "num_fx_nodes": 7,
+    "fx_graph_dir": "/pub/data/hjwz/rewrite/vertify/day4/candidate_graphs/p0_baseline_separate_silu"
+  },
+  {
+    "candidate_id": "p1_separate_manual_silu",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "separate gate_proj and up_proj, manual gate * sigmoid(gate) * up, then down_proj",
+    "day3_structural_signature": "separate|none|manual_silu|out_of_place",
+    "actual_signature_hash": "1ff4296cb695221f",
+    "num_fx_nodes": 8,
+    "fx_graph_dir": "/pub/data/hjwz/rewrite/vertify/day4/candidate_graphs/p1_separate_manual_silu"
+  },
+  {
+    "candidate_id": "p2_separate_inplace_silu_mul",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "separate gate_proj and up_proj, F.silu(gate), inplace multiply with up, then down_proj",
+    "day3_structural_signature": "separate|none|f_silu|inplace",
+    "actual_signature_hash": "def439d78169dbb9",
+    "num_fx_nodes": 7,
+    "fx_graph_dir": "/pub/data/hjwz/rewrite/vertify/day4/candidate_graphs/p2_separate_inplace_silu_mul"
+  },
+  {
+    "candidate_id": "p3_fused_chunk_silu",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "fused gate_up_proj produces 2 * intermediate_dim, chunk into gate/up, F.silu(gate) * up, then down_proj",
+    "day3_structural_signature": "fused|chunk|f_silu|out_of_place",
+    "actual_signature_hash": "bbcf6b9d8b1dd222",
+    "num_fx_nodes": 9,
+    "fx_graph_dir": "/pub/data/hjwz/rewrite/vertify/day4/candidate_graphs/p3_fused_chunk_silu"
+  },
+  {
+    "candidate_id": "p4_fused_split_silu_inplace",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "fused gate_up_proj, torch.split into gate/up, F.silu(gate), inplace multiply with up, then down_proj",
+    "day3_structural_signature": "fused|split|f_silu|inplace",
+    "actual_signature_hash": "e49e04c457a9a0af",
+    "num_fx_nodes": 9,
+    "fx_graph_dir": "/pub/data/hjwz/rewrite/vertify/day4/candidate_graphs/p4_fused_split_silu_inplace"
+  },
+  {
+    "candidate_id": "p5_fused_chunk_manual_silu",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "fused gate_up_proj, chunk into gate/up, manual gate * sigmoid(gate) * up, then down_proj",
+    "day3_structural_signature": "fused|chunk|manual_silu|out_of_place",
+    "actual_signature_hash": "8bf589e2e5eb4a2e",
+    "num_fx_nodes": 10,
+    "fx_graph_dir": "/pub/data/hjwz/rewrite/vertify/day4/candidate_graphs/p5_fused_chunk_manual_silu"
+  }
+]

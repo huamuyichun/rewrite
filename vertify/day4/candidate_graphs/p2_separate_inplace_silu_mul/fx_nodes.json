@@ -1,0 +1,72 @@
+[
+  {
+    "node_idx": 0,
+    "name": "x",
+    "op": "placeholder",
+    "target": "x",
+    "args": "()",
+    "users": "gate_proj,up_proj",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  },
+  {
+    "node_idx": 1,
+    "name": "gate_proj",
+    "op": "call_module",
+    "target": "gate_proj",
+    "args": "(x,)",
+    "users": "silu",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  },
+  {
+    "node_idx": 2,
+    "name": "up_proj",
+    "op": "call_module",
+    "target": "up_proj",
+    "args": "(x,)",
+    "users": "mul_",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  },
+  {
+    "node_idx": 3,
+    "name": "silu",
+    "op": "call_function",
+    "target": "silu",
+    "args": "(gate_proj,)",
+    "users": "mul_",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  },
+  {
+    "node_idx": 4,
+    "name": "mul_",
+    "op": "call_method",
+    "target": "mul_",
+    "args": "(silu, up_proj)",
+    "users": "down_proj",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  },
+  {
+    "node_idx": 5,
+    "name": "down_proj",
+    "op": "call_module",
+    "target": "down_proj",
+    "args": "(mul_,)",
+    "users": "output",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  },
+  {
+    "node_idx": 6,
+    "name": "output",
+    "op": "output",
+    "target": "output",
+    "args": "(down_proj,)",
+    "users": "",
+    "shape": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']",
+    "dtype": "['Size', 'dtype', 'bool', 'tuple', 'memory_format', 'bool', 'dict']"
+  }
+]

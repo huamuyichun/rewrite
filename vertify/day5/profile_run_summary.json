@@ -1,0 +1,64 @@
+{
+  "status": "ok",
+  "backend_modes": [
+    "compile"
+  ],
+  "warmup": 10,
+  "measure": 30,
+  "num_blocks": 3,
+  "num_candidates_per_block": 6,
+  "num_block_backend_cases": 3,
+  "num_raw_rows": 720,
+  "num_summary_rows": 18,
+  "torch_version": "2.10.0+cu129",
+  "cuda_available": true,
+  "cuda_device_name": "NVIDIA A100 80GB PCIe",
+  "torchinductor_cache_dir": "/pub/data/hjwz/.cache/torchinductor",
+  "block_backend_rows": [
+    {
+      "block_id": "b0_seq128_h1024_i4096",
+      "backend_mode": "compile",
+      "num_candidates": 6,
+      "baseline_candidate_id": "p0_baseline_separate_silu",
+      "baseline_latency_p50_ms": 0.09779200330376625,
+      "best_candidate_id": "p3_fused_chunk_silu",
+      "best_latency_p50_ms": 0.08857600018382072,
+      "candidate_spread_slowest_over_fastest": 0.12138723996389955,
+      "median_latency_cv": 0.04934956289869474,
+      "p90_latency_cv": 0.058915673745032614,
+      "first_half_winner": "p3_fused_chunk_silu",
+      "second_half_winner": "p5_fused_chunk_manual_silu",
+      "winner_flip": true
+    },
+    {
+      "block_id": "b1_seq128_h768_i3072",
+      "backend_mode": "compile",
+      "num_candidates": 6,
+      "baseline_candidate_id": "p0_baseline_separate_silu",
+      "baseline_latency_p50_ms": 0.10035199671983719,
+      "best_candidate_id": "p3_fused_chunk_silu",
+      "best_latency_p50_ms": 0.09011200070381165,
+      "candidate_spread_slowest_over_fastest": 0.11363631853745315,
+      "median_latency_cv": 0.04996600409022457,
+      "p90_latency_cv": 0.10364315374404608,
+      "first_half_winner": "p3_fused_chunk_silu",
+      "second_half_winner": "p4_fused_split_silu_inplace",
+      "winner_flip": true
+    },
+    {
+      "block_id": "b2_seq512_h768_i3072",
+      "backend_mode": "compile",
+      "num_candidates": 6,
+      "baseline_candidate_id": "p0_baseline_separate_silu",
+      "baseline_latency_p50_ms": 0.11468800157308578,
+      "best_candidate_id": "p3_fused_chunk_silu",
+      "best_latency_p50_ms": 0.10956799983978271,
+      "candidate_spread_slowest_over_fastest": 0.1775700858318201,
+      "median_latency_cv": 0.028166982570498468,
+      "p90_latency_cv": 0.031451572773763835,
+      "first_half_winner": "p3_fused_chunk_silu",
+      "second_half_winner": "p3_fused_chunk_silu",
+      "winner_flip": false
+    }
+  ]
+}

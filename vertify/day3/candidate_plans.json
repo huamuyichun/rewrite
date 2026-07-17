@@ -1,0 +1,80 @@
+[
+  {
+    "candidate_id": "p0_baseline_separate_silu",
+    "is_baseline": true,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "baseline: separate gate_proj and up_proj, F.silu(gate) * up, then down_proj",
+    "gate_up_projection": "separate",
+    "gate_up_split": "none",
+    "activation": "f_silu",
+    "multiply": "out_of_place",
+    "expected_fx_pattern": "x -> gate_proj; x -> up_proj; gate_proj -> silu; silu + up_proj -> mul; mul -> down_proj",
+    "semantic_condition": "baseline definition",
+    "structural_signature": "separate|none|f_silu|out_of_place"
+  },
+  {
+    "candidate_id": "p1_separate_manual_silu",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "separate gate_proj and up_proj, manual gate * sigmoid(gate) * up, then down_proj",
+    "gate_up_projection": "separate",
+    "gate_up_split": "none",
+    "activation": "manual_silu",
+    "multiply": "out_of_place",
+    "expected_fx_pattern": "x -> gate_proj; x -> up_proj; gate_proj -> sigmoid; gate_proj + sigmoid -> mul_silu; mul_silu + up_proj -> mul; mul -> down_proj",
+    "semantic_condition": "F.silu(gate) is mathematically gate * sigmoid(gate); numerical tolerance must be checked in Day 4",
+    "structural_signature": "separate|none|manual_silu|out_of_place"
+  },
+  {
+    "candidate_id": "p2_separate_inplace_silu_mul",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "separate gate_proj and up_proj, F.silu(gate), inplace multiply with up, then down_proj",
+    "gate_up_projection": "separate",
+    "gate_up_split": "none",
+    "activation": "f_silu",
+    "multiply": "inplace",
+    "expected_fx_pattern": "x -> gate_proj; x -> up_proj; gate_proj -> silu; silu.mul_(up_proj); result -> down_proj",
+    "semantic_condition": "inplace multiply is valid only if the silu output has no other users",
+    "structural_signature": "separate|none|f_silu|inplace"
+  },
+  {
+    "candidate_id": "p3_fused_chunk_silu",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "fused gate_up_proj produces 2 * intermediate_dim, chunk into gate/up, F.silu(gate) * up, then down_proj",
+    "gate_up_projection": "fused",
+    "gate_up_split": "chunk",
+    "activation": "f_silu",
+    "multiply": "out_of_place",
+    "expected_fx_pattern": "x -> gate_up_proj; gate_up_proj -> chunk; chunk[0] -> silu; silu + chunk[1] -> mul; mul -> down_proj",
+    "semantic_condition": "fused gate_up weight equals concat(gate_proj.weight, up_proj.weight) on output dimension",
+    "structural_signature": "fused|chunk|f_silu|out_of_place"
+  },
+  {
+    "candidate_id": "p4_fused_split_silu_inplace",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "fused gate_up_proj, torch.split into gate/up, F.silu(gate), inplace multiply with up, then down_proj",
+    "gate_up_projection": "fused",
+    "gate_up_split": "split",
+    "activation": "f_silu",
+    "multiply": "inplace",
+    "expected_fx_pattern": "x -> gate_up_proj; gate_up_proj -> split; split[0] -> silu; silu.mul_(split[1]); result -> down_proj",
+    "semantic_condition": "fused weight concat condition holds; inplace multiply valid only if silu output has no other users",
+    "structural_signature": "fused|split|f_silu|inplace"
+  },
+  {
+    "candidate_id": "p5_fused_chunk_manual_silu",
+    "is_baseline": false,
+    "rewrite_family": "fusion_related_gate_up_projection",
+    "plan_desc": "fused gate_up_proj, chunk into gate/up, manual gate * sigmoid(gate) * up, then down_proj",
+    "gate_up_projection": "fused",
+    "gate_up_split": "chunk",
+    "activation": "manual_silu",
+    "multiply": "out_of_place",
+    "expected_fx_pattern": "x -> gate_up_proj; gate_up_proj -> chunk; chunk[0] -> sigmoid; chunk[0] + sigmoid -> mul_silu; mul_silu + chunk[1] -> mul; mul -> down_proj",
+    "semantic_condition": "fused weight concat condition holds; manual silu numerical tolerance must be checked in Day 4",
+    "structural_signature": "fused|chunk|manual_silu|out_of_place"
+  }
+]

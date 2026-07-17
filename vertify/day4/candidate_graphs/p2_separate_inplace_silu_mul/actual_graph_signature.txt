@@ -1,0 +1,7 @@
+placeholder:x::gate_proj,up_proj
+call_module:gate_proj:x:silu
+call_module:up_proj:x:mul_
+call_function:silu:gate_proj:mul_
+call_method:mul_:silu|up_proj:down_proj
+call_module:down_proj:mul_:output
+output:output:down_proj:
