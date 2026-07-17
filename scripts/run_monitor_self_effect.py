@@ -43,6 +43,7 @@ def main() -> None:
     parser.add_argument("--iterations-per-sample", type=int, default=100)
     parser.add_argument("--monitor-interval-seconds", type=float, default=1.0)
     args = parser.parse_args()
+    started = time.perf_counter()
 
     if args.output.exists():
         raise FileExistsError(args.output)
@@ -164,7 +165,7 @@ def main() -> None:
             for phase in phases
         ),
         "contaminated": any(phase["contaminated"] for phase in phases),
-        "elapsed_seconds": time.perf_counter(),
+        "elapsed_seconds": time.perf_counter() - started,
     }
     write_json(args.output, result)
     print(json.dumps(result, indent=2))
