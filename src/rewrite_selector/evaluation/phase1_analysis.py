@@ -12,6 +12,9 @@ from rewrite_selector.evaluation.execution_classes import (
     class_by_candidate,
 )
 from rewrite_selector.evaluation.statistics import percentile
+from rewrite_selector.lowering.fingerprint import (
+    fingerprint_inductor_artifacts,
+)
 
 
 def classify_pair(
@@ -89,15 +92,30 @@ def load_normalized_session(
         for candidate_id, summary in candidate_summary.items()
         if candidate_id in mapping
     }
-    fingerprints = {
-        candidate_id: {
+    fingerprints = {}
+    for candidate_id, audit in result["candidate_audits"].items():
+        if audit.get("status") != "ok":
+            continue
+        recorded = audit.get("lowered", {})
+        trace_root = (
+            session_dir
+            / "groups"
+            / group_id
+            / "candidates"
+            / candidate_id
+            / "inductor_trace"
+        )
+        lowered = (
+            fingerprint_inductor_artifacts(trace_root)
+            if trace_root.exists()
+            else recorded
+        )
+        fingerprints[candidate_id] = {
             "high_level": audit.get("high_level", {}).get("sha256"),
-            "lowered": audit.get("lowered", {}).get("lowered_sha256"),
-            "execution": audit.get("lowered", {}).get("execution_sha256"),
+            "lowered": lowered.get("lowered_sha256"),
+            "execution": lowered.get("execution_sha256"),
+            "schema_version": lowered.get("fingerprint_schema_version"),
         }
-        for candidate_id, audit in result["candidate_audits"].items()
-        if audit.get("status") == "ok"
-    }
     baseline_candidate = result["baseline_candidate_id"]
     baseline_class = mapping[baseline_candidate]
     candidate_winner = (

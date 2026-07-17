@@ -11,6 +11,9 @@ from torch.fx import GraphModule, symbolic_trace
 from torch.fx.passes.shape_prop import ShapeProp
 
 
+LOWERING_FINGERPRINT_VERSION = "inductor-ir-v2"
+
+
 def _target_name(target: Any) -> str:
     if isinstance(target, str):
         return target
@@ -73,7 +76,7 @@ def _hash_parts(parts: list[tuple[str, str]]) -> str | None:
 
 
 def fingerprint_inductor_artifacts(root: Path) -> dict[str, Any]:
-    lowered_names = {"ir_pre_fusion.txt", "ir_post_fusion.txt", "fx_graph_transformed.py"}
+    lowered_names = {"ir_pre_fusion.txt", "ir_post_fusion.txt"}
     code_names = {"output_code.py"}
     lowered_parts: list[tuple[str, str]] = []
     code_parts: list[tuple[str, str]] = []
@@ -98,6 +101,7 @@ def fingerprint_inductor_artifacts(root: Path) -> dict[str, Any]:
 
     execution_text = "\n".join(sorted(execution_lines))
     return {
+        "fingerprint_schema_version": LOWERING_FINGERPRINT_VERSION,
         "artifact_files": files,
         "lowered_sha256": _hash_parts(lowered_parts),
         "generated_code_sha256": _hash_parts(code_parts),
