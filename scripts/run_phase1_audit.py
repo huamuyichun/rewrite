@@ -304,18 +304,22 @@ def profile_workload(
     )
 
     diagnostic_profile: dict[str, Any] | None = None
-    duplicate_ids = [
-        candidate_id
-        for execution_class in execution_classes
-        if len(execution_class["candidate_ids"]) > 1
-        for candidate_id in execution_class["candidate_ids"]
-    ]
     audit_config = protocol.get("same_class_audit", {})
-    if duplicate_ids and bool(audit_config.get("enabled", True)):
+    diagnostic_ids = (
+        sorted(callables)
+        if bool(audit_config.get("include_all_candidates", True))
+        else sorted(
+            candidate_id
+            for execution_class in execution_classes
+            if len(execution_class["candidate_ids"]) > 1
+            for candidate_id in execution_class["candidate_ids"]
+        )
+    )
+    if diagnostic_ids and bool(audit_config.get("enabled", True)):
         diagnostic_profile = run_blocked_rounds(
             {
                 candidate_id: callables[candidate_id]
-                for candidate_id in duplicate_ids
+                for candidate_id in diagnostic_ids
             },
             example,
             rounds=int(audit_config.get("rounds", 5)),
