@@ -31,56 +31,19 @@ from rewrite_selector.evaluation.execution_classes import (
     class_summary_from_profile,
     representative_callables,
 )
-from rewrite_selector.ir.mlp import (
-    Workload,
-    dtype_from_name,
-    instantiate_candidate,
-    make_baseline,
-    make_input,
-    set_seed,
-)
-from rewrite_selector.ir.rmsnorm import (
-    RMSNormWorkload,
-    instantiate_rmsnorm_candidate,
-    make_rmsnorm_baseline,
-    make_rmsnorm_input,
-)
+from rewrite_selector.ir.families import FamilyAdapter, get_family_adapter
+from rewrite_selector.ir.mlp import dtype_from_name, set_seed
 from rewrite_selector.lowering.fingerprint import (
     fingerprint_inductor_artifacts,
     high_level_fingerprint,
 )
 from rewrite_selector.profiling.blocked import run_blocked_rounds
 from rewrite_selector.profiling.environment import environment_manifest
-from rewrite_selector.rewrites.mlp_enumerator import enumerate_mlp_candidates
-from rewrite_selector.rewrites.rmsnorm_enumerator import (
-    enumerate_rmsnorm_candidates,
-)
+from rewrite_selector.rewrites.registry import resolve_rewrite_config
 
 
 def read_json(path: Path) -> dict[str, Any]:
     return json.loads(path.read_text(encoding="utf-8"))
-
-
-def resolve_rewrite_config(config: dict[str, Any]) -> dict[str, Any]:
-    if "plans" in config:
-        return config
-    if config.get("enumerator") != "mlp_bounded":
-        raise ValueError(
-            f"unsupported enumerator: {config.get('enumerator')}"
-        )
-    enumeration = enumerate_mlp_candidates(
-        max_depth=int(config["max_rewrite_depth"]),
-        max_candidates=int(config["max_fx_unique_candidates"]),
-    )
-    return {
-        **config,
-        "plans": enumeration["candidates"],
-        "enumeration_summary": {
-            key: value
-            for key, value in enumeration.items()
-            if key not in {"candidates", "enumeration_tree"}
-        },
-    }
 
 
 def write_json(path: Path, value: Any) -> None:
@@ -158,10 +121,11 @@ def candidate_gate(
     baseline: torch.nn.Module,
     candidate: torch.nn.Module,
     compiled: Callable[[torch.Tensor], torch.Tensor],
-    workload: Workload,
+    workload: Any,
     device: torch.device,
     dtype: torch.dtype,
     equivalence_config: dict[str, Any],
+    input_factory: Callable[..., torch.Tensor],
 ) -> dict[str, Any]:
     atol = equivalence_config.get("atol_by_dtype", {}).get(
         workload.dtype,
@@ -179,6 +143,7 @@ def candidate_gate(
         "distributions": list(equivalence_config["distributions"]),
         "atol": float(atol),
         "rtol": float(rtol),
+        "input_factory": input_factory,
     }
     eager = validate_callable(baseline, candidate, **common)
     compiled_result = validate_callable(baseline, compiled, **common)
@@ -217,16 +182,23 @@ def _profile_options(protocol: dict[str, Any]) -> dict[str, Any]:
 
 
 def profile_workload(
-    workload: Workload,
+    workload: Any,
     plans: list[dict[str, Any]],
     protocol: dict[str, Any],
     output_dir: Path,
+    adapter: FamilyAdapter,
 ) -> dict[str, Any]:
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     dtype = dtype_from_name(workload.dtype)
     set_seed(workload.seed)
-    baseline = make_baseline(workload, device, dtype)
-    example = make_input(workload, device, dtype, workload.seed, "normal")
+    baseline = adapter.baseline_factory(workload, device, dtype)
+    example = adapter.input_factory(
+        workload,
+        device,
+        dtype,
+        workload.seed,
+        "normal",
+    )
 
     callables: dict[str, Callable[[torch.Tensor], torch.Tensor]] = {}
     modules: dict[str, torch.nn.Module] = {}
@@ -235,7 +207,7 @@ def profile_workload(
     for plan in plans:
         candidate_id = str(plan["candidate_id"])
         candidate_dir = output_dir / "candidates" / candidate_id
-        module = instantiate_candidate(
+        module = adapter.candidate_factory(
             plan,
             workload,
             baseline,
@@ -267,6 +239,7 @@ def profile_workload(
                 device,
                 dtype,
                 protocol["equivalence"],
+                adapter.input_factory,
             )
             audits[candidate_id] = {
                 "status": gate["status"],
@@ -392,6 +365,7 @@ def profile_workload(
     }
 
     result = {
+        "family_id": adapter.family_id,
         "group_id": workload.group_id,
         "workload": workload.__dict__,
         "formal_selection_unit": (
@@ -488,7 +462,7 @@ def registry_entry(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Run one independent Phase 1 profiling session"
+        description="Run one independent rewrite profiling session"
     )
     parser.add_argument(
         "--rewrites",
@@ -535,14 +509,22 @@ def main() -> None:
     os.environ["TORCHINDUCTOR_CACHE_DIR"] = str(cache_dir)
 
     rewrite_config = resolve_rewrite_config(read_json(args.rewrites))
+    adapter = get_family_adapter(str(rewrite_config["family_id"]))
     workload_config = read_json(args.workloads)
+    workload_family = str(
+        workload_config.get("family_id", adapter.family_id)
+    )
+    if workload_family != adapter.family_id:
+        raise ValueError(
+            f"workload family mismatch: {workload_family}"
+        )
     protocol = read_json(args.protocol)
     if args.monitor_mode is not None:
         protocol["monitor_mode"] = args.monitor_mode
     if args.monitor_backend is not None:
         protocol["monitor_backend"] = args.monitor_backend
     selected = [
-        Workload.from_dict(value)
+        adapter.workload_from_dict(value)
         for value in workload_config["workloads"]
         if not args.group_id or value["group_id"] in set(args.group_id)
     ]
@@ -579,6 +561,7 @@ def main() -> None:
                 rewrite_config["plans"],
                 protocol,
                 session_dir / "groups" / workload.group_id,
+                adapter,
             )
             for workload in selected
         ]
@@ -595,6 +578,7 @@ def main() -> None:
                     key: group[key]
                     for key in (
                         "group_id",
+                        "family_id",
                         "formal_selection_unit",
                         "num_valid_candidates",
                         "num_high_level_unique",

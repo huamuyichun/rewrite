@@ -1,0 +1,105 @@
+{
+  "schema_version": "workload-v1",
+  "family_id": "mlp_gate_up_activation_control",
+  "workloads": [
+    {
+      "group_id": "phase2_mlp_qwen_decode_bs1_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 1,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260717
+    },
+    {
+      "group_id": "phase2_mlp_qwen_decode_bs2_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 2,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260718
+    },
+    {
+      "group_id": "phase2_mlp_qwen_decode_bs4_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 4,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260719
+    },
+    {
+      "group_id": "phase2_mlp_qwen_decode_bs8_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 8,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260720
+    },
+    {
+      "group_id": "phase2_mlp_qwen_decode_bs16_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 16,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260721
+    },
+    {
+      "group_id": "phase2_mlp_qwen_prefill_bs1_s128_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 128,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260722
+    },
+    {
+      "group_id": "phase2_mlp_qwen_prefill_bs1_s512_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 512,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260723
+    },
+    {
+      "group_id": "phase2_mlp_qwen_prefill_bs1_s1024_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 1024,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260724
+    },
+    {
+      "group_id": "phase2_mlp_qwen_prefill_bs1_s2048_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 2048,
+      "hidden_dim": 3584,
+      "intermediate_dim": 18944,
+      "dtype": "bf16",
+      "seed": 20260725
+    }
+  ]
+}

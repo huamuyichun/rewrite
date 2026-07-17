@@ -1,0 +1,94 @@
+{
+  "schema_version": "workload-v1",
+  "family_id": "rmsnorm_residual_boundary",
+  "workloads": [
+    {
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs1_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 1,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260726,
+      "context": "norm_only"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs8_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 8,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260727,
+      "context": "norm_only"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs1_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 1,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260728,
+      "context": "residual_silu"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs8_t1_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "decode",
+      "batch_size": 8,
+      "seq_len": 1,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260729,
+      "context": "residual_silu"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_prefill_bs1_s128_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 128,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260730,
+      "context": "norm_only"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_prefill_bs1_s1024_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 1024,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260731,
+      "context": "norm_only"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_prefill_bs1_s128_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 128,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260801,
+      "context": "residual_silu"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_prefill_bs1_s1024_bf16",
+      "model_id": "Qwen2.5-7B-Instruct",
+      "phase": "prefill",
+      "batch_size": 1,
+      "seq_len": 1024,
+      "hidden_dim": 3584,
+      "dtype": "bf16",
+      "seed": 20260802,
+      "context": "residual_silu"
+    }
+  ]
+}

@@ -5,7 +5,7 @@ from typing import Any, Callable
 import torch
 from torch.fx import GraphModule, symbolic_trace
 
-from rewrite_selector.ir.mlp import Workload, make_input
+from rewrite_selector.ir.mlp import make_input
 
 
 def check_inplace_safety(module: torch.nn.Module) -> dict[str, Any]:
@@ -40,7 +40,7 @@ def error_metrics(reference: torch.Tensor, actual: torch.Tensor) -> dict[str, fl
 def validate_callable(
     reference: Callable[[torch.Tensor], torch.Tensor],
     candidate: Callable[[torch.Tensor], torch.Tensor],
-    workload: Workload,
+    workload: Any,
     device: torch.device,
     dtype: torch.dtype,
     seeds: list[int],
