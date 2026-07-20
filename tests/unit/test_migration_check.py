@@ -5,6 +5,7 @@ from scripts.check_migration import (
     PHASE1_SESSIONS,
     _check_phase1_artifacts,
     _check_qwen,
+    _normalize_gpu_uuid,
 )
 
 
@@ -57,3 +58,8 @@ def test_phase1_artifact_check_requires_each_clean_session(
 
     assert ok
     assert len(details["sessions"]) == 3
+
+
+def test_gpu_uuid_normalization_matches_torch_and_nvml_forms() -> None:
+    value = "b0f2d831-6a1a-c820-f388-431148eabf25"
+    assert _normalize_gpu_uuid(value) == _normalize_gpu_uuid(f"GPU-{value}")

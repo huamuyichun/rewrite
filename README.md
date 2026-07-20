@@ -33,6 +33,36 @@ source .env.migration
 推荐 Python 3.12、PyTorch 2.10.0+cu129、CUDA runtime 12.9。详细版本和迁移
 门禁见 [`environment/README.md`](environment/README.md) 与迁移手册。
 
+### Conda 环境配置
+
+从仓库根目录创建本机配置，并把 `LOCAL_DATA_ROOT` 指向当前用户可写的本机
+高速盘。不要提交 `.env.migration`：
+
+```bash
+cp .env.example .env.migration
+source .env.migration
+
+conda create -y -p "$LOCAL_DATA_ROOT/envs/rewrite" python=3.12 pip
+conda activate "$LOCAL_DATA_ROOT/envs/rewrite"
+python -m pip install --upgrade pip
+python -m pip install torch==2.10.0 \
+  --index-url https://download.pytorch.org/whl/cu129
+python -m pip install -e '.[dev]'
+python -m pip check
+```
+
+每个新 shell 或 tmux session 都按下面顺序恢复路径和环境：
+
+```bash
+cd /path/to/rewrite
+source .env.migration
+conda activate "$LOCAL_DATA_ROOT/envs/rewrite"
+```
+
+模板默认设置 `CUDA_DEVICE_ORDER=PCI_BUS_ID`。在混合 GPU 服务器上不要删除该
+设置；它保证 `CUDA_VISIBLE_DEVICES=<nvidia-smi-index>`、PyTorch device 和
+NVML snapshot 指向同一张物理卡。GPU 实验仍须先执行实时空闲卡门禁。
+
 ## 快速 CPU 检查
 
 ```bash

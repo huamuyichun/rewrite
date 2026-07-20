@@ -106,6 +106,10 @@ def _check_phase1_artifacts(artifact_root: Path) -> tuple[bool, dict[str, Any]]:
     return all_ok, {"sessions": rows}
 
 
+def _normalize_gpu_uuid(value: Any) -> str:
+    return str(value or "").removeprefix("GPU-").lower()
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(
         description="检查 rewrite 仓库迁移后的 CPU、路径、模型、artifact 与 GPU 门禁"
@@ -206,6 +210,7 @@ def main() -> int:
     ]
     gpu_details: dict[str, Any] = {
         "cuda_visible_devices": visible,
+        "cuda_device_order": os.environ.get("CUDA_DEVICE_ORDER", ""),
         "cuda_available": torch.cuda.is_available(),
     }
     gpu_ok = (
@@ -214,12 +219,20 @@ def main() -> int:
         and torch.cuda.is_available()
     )
     if gpu_ok:
-        gpu_details["device_name"] = torch.cuda.get_device_name(0)
+        properties = torch.cuda.get_device_properties(0)
+        torch_uuid = _normalize_gpu_uuid(getattr(properties, "uuid", ""))
+        gpu_details["device_name"] = properties.name
+        gpu_details["device_uuid"] = torch_uuid
         snapshot = gpu_snapshot("nvml")
         gpu_details["snapshot"] = snapshot
+        identity_matches = bool(torch_uuid) and torch_uuid == _normalize_gpu_uuid(
+            snapshot.get("uuid")
+        )
+        gpu_details["identity_matches_nvml"] = identity_matches
         utilization = snapshot.get("gpu_utilization_percent")
         gpu_ok = (
-            not snapshot.get("foreign_processes")
+            identity_matches
+            and not snapshot.get("foreign_processes")
             and (utilization is None or int(utilization) <= 5)
         )
     add("gpu_gate", gpu_ok, args.require_gpu, gpu_details)
