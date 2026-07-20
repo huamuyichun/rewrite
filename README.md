@@ -14,11 +14,13 @@
 - Phase 1：正式关闭；三个 Qwen monitor-off session 复现四个 execution
   classes 和约 6% baseline-to-best gain。
 - Phase 2：MLP/RMSNorm family adapter、17 组 discovery 配置和 CPU dry run
-  已完成；尚未训练任何模型。
+  已完成；目标 A100 上的 8 组 RMSNorm discovery 已完成，尚未训练任何模型。
 - 跨服务器 fingerprint schema 已升级为 `inductor-ir-v3`，目标服务器需先
   重新运行 Phase 1 recalibration canary。
 
 旧 GNN、`vertify`、`rewrite_miniexp` 和手工 pilot 已删除，不得恢复。
+目标服务器环境、recalibration 和 Phase 2 session 见
+[`docs/reports/migration/target_server_migration_20260720.md`](docs/reports/migration/target_server_migration_20260720.md)。
 
 ## 可移植环境
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 
+import scripts.run_phase1_audit as audit_runner
 from scripts.run_phase1_audit import (
-    ROOT,
     configured_artifact_root,
     configured_registry_path,
     path_for_record,
@@ -24,8 +24,13 @@ def test_configured_paths_follow_environment(
 
 def test_registry_entry_supports_external_artifact_root(
     tmp_path: Path,
+    monkeypatch,
 ) -> None:
-    session_dir = tmp_path / "artifacts" / "run" / "session"
+    repository_root = tmp_path / "repository"
+    repository_root.mkdir()
+    monkeypatch.setattr(audit_runner, "ROOT", repository_root)
+
+    session_dir = tmp_path / "external-artifacts" / "run" / "session"
     session_dir.mkdir(parents=True)
     resolved_config = session_dir / "resolved_config.json"
     resolved_config.write_text("{}\n")
@@ -45,4 +50,4 @@ def test_registry_entry_supports_external_artifact_root(
     assert entry["environment_manifest_path"] == str(
         (session_dir / "environment.json").resolve()
     )
-    assert path_for_record(ROOT / "artifacts") == "artifacts"
+    assert path_for_record(repository_root / "artifacts") == "artifacts"

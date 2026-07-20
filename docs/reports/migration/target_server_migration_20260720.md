@@ -2,10 +2,11 @@
 
 ## 结论
 
-目标服务器 `bear` 已按 `docs/SERVER_MIGRATION_GUIDE.md` 完成阶段 A-I。
+目标服务器 `bear` 已按 `docs/SERVER_MIGRATION_GUIDE.md` 完成阶段 A-I，并完成阶段 J 的
+RMSNorm discovery。
 CPU 门禁、单卡 A100 GPU 门禁、GPU smoke 和三个独立 cold-cache Phase 1
 recalibration session 均通过。目标端跨 session 分析结果为 `pass_phase1`，
-允许在本迁移提交形成并 push 后进入 Phase 2 RMSNorm 单组 discovery。
+Phase 2 已从干净迁移提交启动，并完成 8 个 RMSNorm discovery groups。
 
 迁移期间未恢复旧 GNN/pilot，未训练 selector，未修改锁定的 2% noise/tie
 floor 或 0.5% monitor self-effect gate。
@@ -66,7 +67,7 @@ CUDA_DEVICE_ORDER=PCI_BUS_ID
 
 - `scripts/check_migration.py`：必需项通过；Qwen/raw artifacts/GPU（CPU 模式）为 warning。
 - `python -m compileall -q src scripts tests`：通过。
-- `PYTHONPATH=src python -m pytest -q`：28 passed；只有未安装可选 NumPy 的
+- `PYTHONPATH=src python -m pytest -q`：29 passed；只有未安装可选 NumPy 的
   PyTorch import warning。
 - MLP enumeration：19 candidates，growth 1/4/10/19，未截断。
 - RMSNorm enumeration：8 candidates，growth 1/4/8，未截断。
@@ -129,5 +130,36 @@ baseline-to-best gain 为 6.933%，最小为 6.813%；七项 Phase 1 gate 全部
 ## Phase 2 门禁
 
 目标端跨 session exit decision 为 `pass_phase1`，允许进入 Phase 2。Phase 2
-必须从包含本日志、README 环境说明、迁移自检和 compact registry 的干净新 commit
-启动。形成该 commit 前 Phase 2 session 列表为空。
+从包含本日志、README 环境说明、迁移自检和 compact registry 的干净 commit
+`72eb9705ce6ac2d31231b5b3b7fb4da2b902e3ef` 启动。
+
+## Phase 2 RMSNorm discovery
+
+首个 `norm_only decode bs1` canary 干净且显示 2.375% baseline-to-best gain，
+因此按指南扩展了全部 8 个 RMSNorm groups；没有机械启动 9 个 MLP control groups，
+也没有训练 selector。共同 run id 为
+`phase2_rmsnorm_discovery_20260720_030834`，raw artifact 位于
+`$REWRITE_ARTIFACT_ROOT/phase2/phase2_rmsnorm_discovery_20260720_030834`，仅
+compact registry 进入 Git：
+
+| session | group | gain | FX/lowered/execution | spread | contaminated |
+| --- | --- | ---: | --- | ---: | --- |
+| `rms_d01` | norm-only decode bs1/t1 | 2.375% | 8/8/6 | 6.702% | false |
+| `rms_d02` | norm-only decode bs8/t1 | 1.231% | 8/8/6 | 5.695% | false |
+| `rms_d03` | residual-SiLU decode bs1/t1 | 2.211% | 8/8/6 | 6.030% | false |
+| `rms_d04` | residual-SiLU decode bs8/t1 | 1.641% | 8/8/6 | 7.538% | false |
+| `rms_p01` | norm-only prefill bs1/s128 | 1.266% | 8/8/6 | 6.962% | false |
+| `rms_p02` | norm-only prefill bs1/s1024 | 0.000% | 8/8/6 | 6.098% | false |
+| `rms_p03` | residual-SiLU prefill bs1/s128 | 1.299% | 8/8/6 | 5.844% | false |
+| `rms_p04` | residual-SiLU prefill bs1/s1024 | 1.299% | 8/8/6 | 6.494% | false |
+
+8/8 groups 的 8 candidates 均通过 eager/compiled equivalence 和 alias guard；每组
+fingerprint schema 均为 `inductor-ir-v3`，正式 monitor 均为 off、sample_count=0，
+boundary clock 为 1410→1410 MHz，foreign PID 为空。execution class 数稳定为 6，
+但 winner 随 batch/context/phase 变化，说明该 family 不是单一 class 无条件统治。
+5 个 same-class diagnostic 的 3-sample timing spread 超过 2% floor（最高 4.878%）；
+这只是同一 execution hash 的短 diagnostic latency 差异，hash/schema 本身稳定，未
+修改锁定 floor，也未将这些 warning 当作正式污染。
+
+阶段 J 已完成。当前允许继续做有明确假设的 family 分析或另行规划 MLP
+controls；本次迁移不进入 learned selector 训练。
