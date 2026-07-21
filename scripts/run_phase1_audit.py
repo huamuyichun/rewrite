@@ -30,10 +30,12 @@ from rewrite_selector.evaluation.execution_classes import (
     class_by_candidate,
     class_summary_from_profile,
     representative_callables,
+    validate_complete_fingerprints,
 )
 from rewrite_selector.ir.families import FamilyAdapter, get_family_adapter
 from rewrite_selector.ir.mlp import dtype_from_name, set_seed
 from rewrite_selector.lowering.fingerprint import (
+    LOWERING_FINGERPRINT_VERSION,
     fingerprint_inductor_artifacts,
     high_level_fingerprint,
 )
@@ -124,12 +126,15 @@ def compile_candidate(
     configure_inductor_trace(True, artifact_dir)
     started = time.perf_counter()
     try:
-        compiled = torch.compile(module, backend="inductor")
-        with torch.no_grad():
-            output = compiled(example)
-        if example.device.type == "cuda":
-            torch.cuda.synchronize()
-        _ = output.detach()
+        # A cache hit skips Inductor debug trace emission. Each candidate must
+        # compile independently so dedup is based on complete artifacts.
+        with torch.compiler.config.patch(force_disable_caches=True):
+            compiled = torch.compile(module, backend="inductor")
+            with torch.no_grad():
+                output = compiled(example)
+            if example.device.type == "cuda":
+                torch.cuda.synchronize()
+            _ = output.detach()
     finally:
         configure_inductor_trace(False)
     compile_prime_ms = (time.perf_counter() - started) * 1000
@@ -289,9 +294,19 @@ def profile_workload(
     if not callables:
         raise RuntimeError(f"no valid candidates for {workload.group_id}")
 
-    execution_classes = build_execution_classes(plans, audits)
+    compile_backend = protocol["backend"] == "compile"
+    if compile_backend:
+        validate_complete_fingerprints(
+            audits,
+            LOWERING_FINGERPRINT_VERSION,
+        )
+        execution_classes = build_execution_classes(plans, audits)
+    else:
+        execution_classes = []
     candidate_to_class = class_by_candidate(execution_classes)
-    profile_by_class = bool(protocol.get("profile_execution_classes", True))
+    profile_by_class = compile_backend and bool(
+        protocol.get("profile_execution_classes", True)
+    )
     formal_callables = (
         representative_callables(execution_classes, callables)
         if profile_by_class
@@ -406,9 +421,9 @@ def profile_workload(
         "candidate_to_execution_class": candidate_to_class,
         "fingerprint_consistency": consistency,
         "baseline_candidate_id": baseline_candidate_id,
-        "baseline_execution_class_id": candidate_to_class[
+        "baseline_execution_class_id": candidate_to_class.get(
             baseline_candidate_id
-        ],
+        ),
         "best_unit_id": fastest_id,
         "best_p50_ms": formal_summary[fastest_id]["p50_ms"],
         "baseline_p50_ms": formal_summary[baseline_unit_id]["p50_ms"],
@@ -547,6 +562,10 @@ def main() -> None:
             f"workload family mismatch: {workload_family}"
         )
     protocol = read_json(args.protocol)
+    if protocol["backend"] == "compile":
+        protocol["candidate_compile_cache_policy"] = (
+            "force_disable_caches_per_candidate"
+        )
     if args.monitor_mode is not None:
         protocol["monitor_mode"] = args.monitor_mode
     if args.monitor_backend is not None:
@@ -563,6 +582,10 @@ def main() -> None:
     manifest["source"] = source
     manifest["cache"] = {
         "policy": protocol.get("cache_policy", "unspecified"),
+        "candidate_compile_policy": protocol.get(
+            "candidate_compile_cache_policy",
+            "not_applicable",
+        ),
         "directory": str(cache_dir),
         "preexisting": cache_preexisting,
     }

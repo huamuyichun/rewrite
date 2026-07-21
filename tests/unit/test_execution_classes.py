@@ -1,7 +1,10 @@
+import pytest
+
 from rewrite_selector.evaluation.execution_classes import (
     analyze_fingerprint_consistency,
     build_execution_classes,
     class_by_candidate,
+    validate_complete_fingerprints,
 )
 
 
@@ -51,3 +54,39 @@ def test_fingerprint_inconsistency_uses_noise_floor() -> None:
         if len(item["candidate_p50_ms"]) == 2
     )
     assert duplicate["status"] == "fingerprint_inconsistency"
+
+
+def test_missing_execution_fingerprint_cannot_form_singleton_class() -> None:
+    plans = [{"candidate_id": "p0", "rewrite_trace": []}]
+    audits = {"p0": {"status": "ok", "lowered": {}}}
+
+    with pytest.raises(ValueError, match="missing fingerprints: p0"):
+        build_execution_classes(plans, audits)
+
+
+def test_complete_fingerprint_gate_reports_all_missing_fields() -> None:
+    audits = {
+        "p0": {
+            "status": "ok",
+            "lowered": {
+                "fingerprint_schema_version": "inductor-ir-v3",
+                "artifact_files": ["output_code.py"],
+                "lowered_sha256": "lowered",
+                "generated_code_sha256": "generated",
+                "execution_sha256": "execution",
+            },
+        },
+        "p1": {
+            "status": "ok",
+            "lowered": {
+                "fingerprint_schema_version": "inductor-ir-v3",
+                "artifact_files": [],
+                "lowered_sha256": None,
+                "generated_code_sha256": None,
+                "execution_sha256": None,
+            },
+        },
+    }
+
+    with pytest.raises(ValueError, match="incomplete lowering fingerprints: p1"):
+        validate_complete_fingerprints(audits, "inductor-ir-v3")

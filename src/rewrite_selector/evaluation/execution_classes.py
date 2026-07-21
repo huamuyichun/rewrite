@@ -20,8 +20,12 @@ def build_execution_classes(
         if audit.get("status") != "ok":
             continue
         execution_hash = audit.get("lowered", {}).get("execution_sha256")
-        key = execution_hash or f"missing:{candidate_id}"
-        grouped.setdefault(key, []).append(candidate_id)
+        if not execution_hash:
+            raise ValueError(
+                "cannot build execution classes with missing fingerprints: "
+                f"{candidate_id}"
+            )
+        grouped.setdefault(str(execution_hash), []).append(candidate_id)
 
     classes: list[dict[str, Any]] = []
     for execution_hash, candidate_ids in sorted(grouped.items()):
@@ -34,19 +38,10 @@ def build_execution_classes(
             ),
         )
         representative = ordered[0]
-        stable_suffix = (
-            execution_hash[:16]
-            if not execution_hash.startswith("missing:")
-            else representative
-        )
         classes.append(
             {
-                "execution_class_id": f"exec_{stable_suffix}",
-                "execution_sha256": (
-                    execution_hash
-                    if not execution_hash.startswith("missing:")
-                    else None
-                ),
+                "execution_class_id": f"exec_{execution_hash[:16]}",
+                "execution_sha256": execution_hash,
                 "canonical_candidate_id": representative,
                 "candidate_ids": ordered,
                 "candidate_rewrite_traces": {
@@ -54,14 +49,38 @@ def build_execution_classes(
                     for candidate_id in ordered
                 },
                 "num_candidates": len(ordered),
-                "fingerprint_status": (
-                    "ok"
-                    if not execution_hash.startswith("missing:")
-                    else "missing"
-                ),
+                "fingerprint_status": "ok",
             }
         )
     return classes
+
+
+def validate_complete_fingerprints(
+    audits: dict[str, dict[str, Any]],
+    expected_schema: str,
+) -> None:
+    required = (
+        "artifact_files",
+        "lowered_sha256",
+        "generated_code_sha256",
+        "execution_sha256",
+    )
+    incomplete: dict[str, list[str]] = {}
+    for candidate_id, audit in sorted(audits.items()):
+        if audit.get("status") != "ok":
+            continue
+        lowered = audit.get("lowered", {})
+        missing = [key for key in required if not lowered.get(key)]
+        if lowered.get("fingerprint_schema_version") != expected_schema:
+            missing.append("fingerprint_schema_version")
+        if missing:
+            incomplete[candidate_id] = missing
+    if incomplete:
+        details = ", ".join(
+            f"{candidate_id} ({'/'.join(fields)})"
+            for candidate_id, fields in incomplete.items()
+        )
+        raise ValueError(f"incomplete lowering fingerprints: {details}")
 
 
 def representative_callables(
