@@ -6,6 +6,8 @@ import platform
 import subprocess
 import sys
 import time
+from hashlib import sha256
+from importlib.metadata import PackageNotFoundError, version
 from typing import Any
 
 import torch
@@ -162,7 +164,38 @@ def gpu_snapshot(backend: str = "nvml") -> dict[str, Any]:
     raise ValueError(f"unsupported monitor backend: {backend}")
 
 
+def _package_version(distribution: str) -> str:
+    try:
+        return version(distribution)
+    except PackageNotFoundError:
+        return ""
+
+
+def _driver_version(raw: str) -> str:
+    versions = sorted({line.strip() for line in raw.splitlines() if line.strip()})
+    return ",".join(versions)
+
+
 def environment_manifest() -> dict[str, Any]:
+    gpu = gpu_snapshot("nvml")
+    driver = _run(
+        ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
+    )
+    domain_payload = {
+        "python": platform.python_version(),
+        "torch": torch.__version__,
+        "cuda_runtime": torch.version.cuda,
+        "triton": _package_version("triton"),
+        "nvidia_driver": _driver_version(driver),
+        "gpu_name": gpu.get("name"),
+        "gpu_uuid": gpu.get("uuid"),
+        "cuda_device_order": os.environ.get("CUDA_DEVICE_ORDER", ""),
+    }
+    encoded_domain = json.dumps(
+        domain_payload,
+        sort_keys=True,
+        separators=(",", ":"),
+    ).encode()
     manifest = {
         "timestamp_ns": time.time_ns(),
         "pid": os.getpid(),
@@ -170,7 +203,9 @@ def environment_manifest() -> dict[str, Any]:
         "platform": platform.platform(),
         "torch": torch.__version__,
         "cuda_runtime": torch.version.cuda,
+        "triton": domain_payload["triton"],
         "cuda_visible_devices": os.environ.get("CUDA_VISIBLE_DEVICES", ""),
+        "cuda_device_order": domain_payload["cuda_device_order"],
         "torchinductor_cache_dir": os.environ.get("TORCHINDUCTOR_CACHE_DIR", ""),
         "path_config": {
             key: os.environ.get(key, "")
@@ -184,10 +219,12 @@ def environment_manifest() -> dict[str, Any]:
                 "HF_HOME",
             )
         },
-        "driver": _run(
-            ["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"]
-        ),
-        "gpu": gpu_snapshot("nvml"),
+        "driver": driver,
+        "gpu": gpu,
+        "hardware_environment_domain": {
+            "domain_id": f"env_{sha256(encoded_domain).hexdigest()[:16]}",
+            "payload": domain_payload,
+        },
     }
     return json.loads(json.dumps(manifest, default=str))
 

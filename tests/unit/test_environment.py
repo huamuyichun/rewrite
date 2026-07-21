@@ -24,6 +24,7 @@ def test_manifest_records_portable_path_config(monkeypatch) -> None:
     monkeypatch.setenv("REWRITE_ROOT", "/workspace/rewrite")
     monkeypatch.setenv("REWRITE_ARTIFACT_ROOT", "/data/artifacts")
     monkeypatch.setenv("QWEN_MODEL_DIR", "/data/models/qwen")
+    monkeypatch.setenv("CUDA_DEVICE_ORDER", "PCI_BUS_ID")
 
     manifest = environment.environment_manifest()
 
@@ -33,3 +34,6 @@ def test_manifest_records_portable_path_config(monkeypatch) -> None:
         == "/data/artifacts"
     )
     assert manifest["path_config"]["QWEN_MODEL_DIR"] == "/data/models/qwen"
+    assert manifest["cuda_device_order"] == "PCI_BUS_ID"
+    assert "triton" in manifest
+    assert manifest["hardware_environment_domain"]["domain_id"].startswith("env_")

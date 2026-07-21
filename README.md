@@ -14,7 +14,9 @@
 - Phase 1：正式关闭；三个 Qwen monitor-off session 复现四个 execution
   classes 和约 6% baseline-to-best gain。
 - Phase 2：MLP/RMSNorm family adapter、17 组 discovery 配置和 CPU dry run
-  已完成；目标 A100 上的 8 组 RMSNorm discovery 已完成，尚未训练任何模型。
+  已完成；目标 A100 上的 8 组 RMSNorm discovery 与首轮离线聚合已完成，尚未
+  训练任何模型。聚合结果见
+  [`docs/reports/phase2/rmsnorm_discovery_summary.md`](docs/reports/phase2/rmsnorm_discovery_summary.md)。
 - 跨服务器 fingerprint schema 已升级为 `inductor-ir-v3`，目标服务器需先
   重新运行 Phase 1 recalibration canary。
 
@@ -72,6 +74,7 @@ PYTHONPATH=src python -m pytest -q
 PYTHONPATH=src python -m compileall -q src scripts tests
 python scripts/check_migration.py
 python scripts/run_phase1_audit.py --help
+python scripts/analyze_phase2.py --help
 ```
 
 GPU 实验前必须只暴露一张明确空闲卡，并同时检查 GPU 状态和 compute PID。

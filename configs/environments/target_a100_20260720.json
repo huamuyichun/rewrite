@@ -1,0 +1,48 @@
+{
+  "schema_version": "hardware-environment-domain-v1",
+  "domain_id": "bear-a100-b0f2d831-cu129-torch210-driver560-20260720",
+  "description": "Target-server A100 domain frozen after migration and Phase 1 recalibration.",
+  "migration_tag": "migration-a100-20260720",
+  "migration_commit": "fa0e4471b9cb44b5d83ebf321585597c11ef579f",
+  "discovery_source_commit": "72eb9705ce6ac2d31231b5b3b7fb4da2b902e3ef",
+  "hardware": {
+    "gpu_name": "NVIDIA A100 80GB PCIe",
+    "gpu_uuid": "GPU-b0f2d831-6a1a-c820-f388-431148eabf25",
+    "physical_index": 0,
+    "memory_total_mib": 81920.0
+  },
+  "software": {
+    "python": "3.12.13",
+    "torch": "2.10.0+cu129",
+    "cuda_runtime": "12.9",
+    "triton": "3.6.0",
+    "nvidia_driver": "560.35.05"
+  },
+  "execution_policy": {
+    "cuda_device_order": "PCI_BUS_ID",
+    "cache_policy": "cold_session",
+    "timing_monitor_mode": "off",
+    "boundary_monitor_backend": "nvml",
+    "noise_floor_relative": 0.02,
+    "monitor_self_effect_gate_relative": 0.005
+  },
+  "latency_policy": {
+    "absolute_latency_merge_scope": "same-domain-only",
+    "cross_domain_comparisons": [
+      "normalized_gain",
+      "ranking",
+      "fingerprint"
+    ],
+    "cross_domain_absolute_raw_merge_allowed": false
+  },
+  "historical_manifest_supplements": {
+    "triton": {
+      "value": "3.6.0",
+      "evidence": "docs/reports/migration/target_server_migration_20260720.md"
+    },
+    "cuda_device_order": {
+      "value": "PCI_BUS_ID",
+      "evidence": "docs/reports/migration/target_server_migration_20260720.md"
+    }
+  }
+}
