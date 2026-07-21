@@ -2346,6 +2346,14 @@
       "winner_entropy_normalized": 1.0000000000000002
     }
   },
+  "excluded_session_ids": [
+    "rms_d01_r03",
+    "rms_d02_r03",
+    "rms_d03_r03",
+    "rms_d04_r03",
+    "rms_p02_r03",
+    "rms_p03_r03"
+  ],
   "family_id": "rmsnorm_residual_boundary",
   "groups": [
     {

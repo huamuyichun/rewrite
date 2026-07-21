@@ -352,7 +352,7 @@ def write_csv(path: Path, analysis: dict[str, Any]) -> None:
         "contaminated",
     ]
     with path.open("w", encoding="utf-8", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=fieldnames)
+        writer = csv.DictWriter(handle, fieldnames=fieldnames, lineterminator="\n")
         writer.writeheader()
         for group in analysis["groups"]:
             for row in group["execution_classes"]:
@@ -388,6 +388,7 @@ def main() -> None:
         description="Aggregate Phase 2 discovery sessions by semantic plan and execution class"
     )
     parser.add_argument("--run-id", action="append", required=True)
+    parser.add_argument("--exclude-session-id", action="append", default=[])
     parser.add_argument(
         "--registry",
         type=Path,
@@ -415,6 +416,7 @@ def main() -> None:
         set(args.run_id),
         noise_floor_relative=args.noise_floor_relative,
         bootstrap_resamples=args.bootstrap_resamples,
+        excluded_session_ids=set(args.exclude_session_id),
     )
     json_path = args.output_dir / f"{args.basename}.json"
     csv_path = args.output_dir / f"{args.basename}.csv"
@@ -429,6 +431,7 @@ def main() -> None:
                 "run_ids": sorted(set(args.run_id)),
                 "groups": len(analysis["groups"]),
                 "sessions": len(analysis["session_audits"]),
+                "excluded_session_ids": sorted(set(args.exclude_session_id)),
                 "all_session_provenance_complete": analysis[
                     "all_session_provenance_complete"
                 ],

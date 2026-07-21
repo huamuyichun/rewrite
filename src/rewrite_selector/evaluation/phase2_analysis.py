@@ -1105,12 +1105,15 @@ def analyze_registry_sessions(
     run_ids: set[str],
     noise_floor_relative: float = 0.02,
     bootstrap_resamples: int = 2000,
+    excluded_session_ids: set[str] | None = None,
 ) -> dict[str, Any]:
     domain = _read_json(domain_path)
+    excluded_session_ids = excluded_session_ids or set()
     entries = [
         entry
         for entry in load_registry(registry_path)
         if str(entry.get("run_id")) in run_ids
+        and str(entry.get("session_id")) not in excluded_session_ids
     ]
     if not entries:
         raise ValueError(f"no registry entries found for run ids: {sorted(run_ids)}")
@@ -1267,6 +1270,7 @@ def analyze_registry_sessions(
         "noise_floor_relative": noise_floor_relative,
         "bootstrap_resamples": bootstrap_resamples,
         "run_ids": sorted(run_ids),
+        "excluded_session_ids": sorted(excluded_session_ids),
         "session_audits": session_audits,
         "all_session_provenance_complete": all(
             row["provenance_complete"] for row in session_audits

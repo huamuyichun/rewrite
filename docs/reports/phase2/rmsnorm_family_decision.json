@@ -1,0 +1,639 @@
+{
+  "aborted_or_contaminated_sessions": [],
+  "absolute_latency_scope": "same-domain-only",
+  "analysis_path": "docs/reports/phase2/rmsnorm_discovery_summary.json",
+  "decision": {
+    "code": "B",
+    "expand_similar_rmsnorm_shapes": false,
+    "label": "\u964d\u4e3a control/diagnostic family",
+    "learned_selector_authorized": false
+  },
+  "evidence": {
+    "always_possible_semantic_plan_ids": [
+      "sem_1f8ff2cd110a45ba",
+      "sem_286a68462afba0aa",
+      "sem_584eba078e62c9da",
+      "sem_e8052199546100d5",
+      "sem_f9305041e4a24aea"
+    ],
+    "average_noise_aware_best_set_size": 3.125,
+    "best_simple_rule": {
+      "bucket_selections": {
+        "decode": "sem_584eba078e62c9da",
+        "prefill": "sem_1f8ff2cd110a45ba"
+      },
+      "noise_aware_regret": {
+        "max": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "num_buckets": 2,
+      "raw_regret": {
+        "max": 0.0010256488632014449,
+        "p50": 0.0,
+        "p90": 0.00030769465896043327,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0010256488632014449,
+          0.0,
+          0.0
+        ]
+      },
+      "rule": "decode_vs_prefill"
+    },
+    "contaminated_sessions": 0,
+    "decode_best_fixed": {
+      "fractional_tie_aware_win_share": 0.2,
+      "noise_aware_regret": {
+        "max": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "possible_win_share": 1.0,
+      "raw_regret": {
+        "max": 0.0010256488632014449,
+        "p50": 0.0,
+        "p90": 0.0007179542042410116,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0010256488632014449
+        ]
+      },
+      "semantic_plan_id": "sem_584eba078e62c9da",
+      "strict_win_share": 0.0
+    },
+    "execution_retention": {
+      "max": 0.75,
+      "median": 0.75,
+      "min": 0.75,
+      "values": [
+        0.75,
+        0.75,
+        0.75,
+        0.75,
+        0.75,
+        0.75,
+        0.75,
+        0.75
+      ]
+    },
+    "fingerprint_and_mapping_stable": true,
+    "global_best_fixed": {
+      "fractional_tie_aware_win_share": 0.19583333333333333,
+      "noise_aware_regret": {
+        "max": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "possible_win_share": 1.0,
+      "raw_regret": {
+        "max": 0.007869883581621773,
+        "p50": 0.0,
+        "p90": 0.005234234393329928,
+        "values": [
+          0.007869883581621773,
+          0.004104670455490567,
+          0.0,
+          0.0,
+          0.0005025163844325498,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "semantic_plan_id": "sem_1f8ff2cd110a45ba",
+      "strict_win_share": 0.0
+    },
+    "groups_with_strict_preference": 8,
+    "num_groups": 8,
+    "num_sessions": 20,
+    "pair_counts": {
+      "ambiguous": 49,
+      "strict": 57,
+      "tie": 14
+    },
+    "prefill_best_fixed": {
+      "fractional_tie_aware_win_share": 0.19166666666666668,
+      "noise_aware_regret": {
+        "max": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "possible_win_share": 1.0,
+      "raw_regret": {
+        "max": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "semantic_plan_id": "sem_1f8ff2cd110a45ba",
+      "strict_win_share": 0.0
+    },
+    "production_default": {
+      "fractional_tie_aware_win_share": 0.19583333333333333,
+      "noise_aware_regret": {
+        "max": 0.0,
+        "p50": 0.0,
+        "p90": 0.0,
+        "values": [
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0,
+          0.0
+        ]
+      },
+      "possible_win_share": 1.0,
+      "raw_regret": {
+        "max": 0.03947369932678235,
+        "p50": 0.014784081093241364,
+        "p90": 0.027319450638108787,
+        "values": [
+          0.019412408004561454,
+          0.012314011366471922,
+          0.03947369932678235,
+          0.012658232511429501,
+          0.022110486914391547,
+          0.01641026241088861,
+          0.012987017895738084,
+          0.013157899775594117
+        ]
+      },
+      "semantic_plan_id": "sem_e8052199546100d5",
+      "strict_win_share": 0.0
+    },
+    "production_to_noise_aware_oracle_gain": {
+      "max": 0.0,
+      "median": 0.0,
+      "p90": 0.0,
+      "values": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ]
+    },
+    "production_to_point_oracle_gain": {
+      "max": 0.03947369932678235,
+      "median": 0.014784081093241364,
+      "p90": 0.027319450638108787,
+      "values": [
+        0.019412408004561454,
+        0.012314011366471922,
+        0.03947369932678235,
+        0.012658232511429501,
+        0.022110486914391547,
+        0.01641026241088861,
+        0.012987017895738084,
+        0.013157899775594117
+      ]
+    },
+    "replicated_group_count": 6,
+    "same_class_timing_warning_count": 12,
+    "strict_winner_semantic_plan_ids": [],
+    "strictly_distinguishable_class_counts": [
+      6,
+      6,
+      5,
+      5,
+      6,
+      6,
+      5,
+      6
+    ],
+    "winner_semantic_plan_sets_vary": true
+  },
+  "family_id": "rmsnorm_residual_boundary",
+  "hardware_environment_domain_id": "bear-a100-b0f2d831-cu129-torch210-driver560-20260720",
+  "interpretation": {
+    "fixed_plan_near_oracle": true,
+    "production_in_every_noise_aware_best_set": true,
+    "real_execution_diversity": true,
+    "replicated_session_gain_median": 0.015604591793819234,
+    "simple_rule_near_oracle": true,
+    "stable_context_dependent_strict_winner_exchange": false
+  },
+  "mlp_next_action": {
+    "adaptive_replication_only": true,
+    "do_not_train_selector": true,
+    "num_groups": 9,
+    "profile_execution_unique_only": true,
+    "role": "control_family",
+    "screening_sessions_per_group": 1,
+    "status": "authorized_after_rmsnorm_decision"
+  },
+  "new_sessions": [
+    {
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs1_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d01_r02",
+      "source_commit": "c71171dad0781e8b8103f1fbfa15c7be92dda629"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs8_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d02_r02",
+      "source_commit": "c71171dad0781e8b8103f1fbfa15c7be92dda629"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs1_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d03_r02",
+      "source_commit": "c71171dad0781e8b8103f1fbfa15c7be92dda629"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs8_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d04_r02",
+      "source_commit": "c71171dad0781e8b8103f1fbfa15c7be92dda629"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_prefill_bs1_s1024_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_p02_r02",
+      "source_commit": "c71171dad0781e8b8103f1fbfa15c7be92dda629"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_prefill_bs1_s128_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_p03_r02",
+      "source_commit": "c71171dad0781e8b8103f1fbfa15c7be92dda629"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs1_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d01_r03",
+      "source_commit": "9fb4b76692c14ada4496ef214ad8e2bd3972ea17"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs8_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d02_r03",
+      "source_commit": "9fb4b76692c14ada4496ef214ad8e2bd3972ea17"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs1_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d03_r03",
+      "source_commit": "9fb4b76692c14ada4496ef214ad8e2bd3972ea17"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs8_t1_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_d04_r03",
+      "source_commit": "9fb4b76692c14ada4496ef214ad8e2bd3972ea17"
+    },
+    {
+      "group_id": "phase2_rmsnorm_norm_only_prefill_bs1_s1024_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_p02_r03",
+      "source_commit": "9fb4b76692c14ada4496ef214ad8e2bd3972ea17"
+    },
+    {
+      "group_id": "phase2_rmsnorm_residual_silu_prefill_bs1_s128_bf16",
+      "provenance_complete": true,
+      "run_id": "phase2_rmsnorm_replication_20260721_031121",
+      "session_id": "rms_p03_r03",
+      "source_commit": "9fb4b76692c14ada4496ef214ad8e2bd3972ea17"
+    }
+  ],
+  "noise_floor_relative": 0.02,
+  "phase2_exit_gate": {
+    "rmsnorm_supports_learned_selector": false,
+    "status": "pending_mlp_control_discovery"
+  },
+  "replication": [
+    {
+      "baseline_to_point_oracle_gain": {
+        "max": 0.029215771239292865,
+        "median": 0.023746698443032566,
+        "min": 0.019412408004561454,
+        "values": [
+          0.023746698443032566,
+          0.029215771239292865,
+          0.019412408004561454
+        ]
+      },
+      "best_set_exact_reproducibility": 1.0,
+      "contaminated_session_ratio": 0,
+      "execution_class_mapping_stable": true,
+      "fingerprint_stable": true,
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs1_t1_bf16",
+      "pairwise_point_order_reproducibility": 0.9333333333333333,
+      "point_winner_reproducibility": 1.0,
+      "session_drift": {
+        "max_class_p50_range": 0.0350515134802043,
+        "median_class_p50_range": 0.03134348074608739,
+        "per_session": [
+          {
+            "max_absolute_class_shift": 0.007808432129805309,
+            "median_relative_shift": -0.0022278968122250165,
+            "session_id": "rms_d01"
+          },
+          {
+            "max_absolute_class_shift": 0.03345337752122601,
+            "median_relative_shift": 0.02709836369627494,
+            "session_id": "rms_d01_r02"
+          },
+          {
+            "max_absolute_class_shift": 0.0,
+            "median_relative_shift": 0.0,
+            "session_id": "rms_d01_r03"
+          }
+        ]
+      },
+      "session_ids": [
+        "rms_d01",
+        "rms_d01_r02",
+        "rms_d01_r03"
+      ]
+    },
+    {
+      "baseline_to_point_oracle_gain": {
+        "max": 0.015872982631049748,
+        "median": 0.01327883812039321,
+        "min": 0.012314011366471922,
+        "values": [
+          0.012314011366471922,
+          0.01327883812039321,
+          0.015872982631049748
+        ]
+      },
+      "best_set_exact_reproducibility": 0.6666666666666666,
+      "contaminated_session_ratio": 0,
+      "execution_class_mapping_stable": true,
+      "fingerprint_stable": true,
+      "group_id": "phase2_rmsnorm_norm_only_decode_bs8_t1_bf16",
+      "pairwise_point_order_reproducibility": 0.9333333333333333,
+      "point_winner_reproducibility": 0.6666666666666666,
+      "session_drift": {
+        "max_class_p50_range": 0.05132105356808214,
+        "median_class_p50_range": 0.038095213898364455,
+        "per_session": [
+          {
+            "max_absolute_class_shift": 0.0,
+            "median_relative_shift": 0.0,
+            "session_id": "rms_d02"
+          },
+          {
+            "max_absolute_class_shift": 0.02475730089377004,
+            "median_relative_shift": 0.012939063190472111,
+            "session_id": "rms_d02_r02"
+          },
+          {
+            "max_absolute_class_shift": 0.030271925943369582,
+            "median_relative_shift": -0.027984859432350462,
+            "session_id": "rms_d02_r03"
+          }
+        ]
+      },
+      "session_ids": [
+        "rms_d02",
+        "rms_d02_r02",
+        "rms_d02_r03"
+      ]
+    },
+    {
+      "baseline_to_point_oracle_gain": {
+        "max": 0.03947369932678235,
+        "median": 0.006666620100540088,
+        "min": 0.0,
+        "values": [
+          0.0,
+          0.03947369932678235,
+          0.006666620100540088
+        ]
+      },
+      "best_set_exact_reproducibility": 0.6666666666666666,
+      "contaminated_session_ratio": 0,
+      "execution_class_mapping_stable": true,
+      "fingerprint_stable": true,
+      "group_id": "phase2_rmsnorm_norm_only_prefill_bs1_s1024_bf16",
+      "pairwise_point_order_reproducibility": 0.6,
+      "point_winner_reproducibility": 0.6666666666666666,
+      "session_drift": {
+        "max_class_p50_range": 0.11538465843762058,
+        "median_class_p50_range": 0.09413500365993221,
+        "per_session": [
+          {
+            "max_absolute_class_shift": 0.08125002955857852,
+            "median_relative_shift": 0.06333175335991814,
+            "session_id": "rms_p02"
+          },
+          {
+            "max_absolute_class_shift": 0.0,
+            "median_relative_shift": 0.0,
+            "session_id": "rms_p02_r02"
+          },
+          {
+            "max_absolute_class_shift": 0.04878050511828136,
+            "median_relative_shift": -0.022011006329939076,
+            "session_id": "rms_p02_r03"
+          }
+        ]
+      },
+      "session_ids": [
+        "rms_p02",
+        "rms_p02_r02",
+        "rms_p02_r03"
+      ]
+    },
+    {
+      "baseline_to_point_oracle_gain": {
+        "max": 0.022110486914391547,
+        "median": 0.017973002920728565,
+        "min": 0.01758922296446097,
+        "values": [
+          0.022110486914391547,
+          0.01758922296446097,
+          0.017973002920728565
+        ]
+      },
+      "best_set_exact_reproducibility": 1.0,
+      "contaminated_session_ratio": 0,
+      "execution_class_mapping_stable": true,
+      "fingerprint_stable": true,
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs1_t1_bf16",
+      "pairwise_point_order_reproducibility": 0.9333333333333333,
+      "point_winner_reproducibility": 1.0,
+      "session_drift": {
+        "max_class_p50_range": 0.052993193416353446,
+        "median_class_p50_range": 0.04246369235316527,
+        "per_session": [
+          {
+            "max_absolute_class_shift": 0.0,
+            "median_relative_shift": 0.0,
+            "session_id": "rms_d03"
+          },
+          {
+            "max_absolute_class_shift": 0.03886252409824742,
+            "median_relative_shift": -0.03261435513865424,
+            "session_id": "rms_d03_r02"
+          },
+          {
+            "max_absolute_class_shift": 0.018993386658848088,
+            "median_relative_shift": 0.008060655907473402,
+            "session_id": "rms_d03_r03"
+          }
+        ]
+      },
+      "session_ids": [
+        "rms_d03",
+        "rms_d03_r02",
+        "rms_d03_r03"
+      ]
+    },
+    {
+      "baseline_to_point_oracle_gain": {
+        "max": 0.022548524953139415,
+        "median": 0.017930345467245257,
+        "min": 0.01641026241088861,
+        "values": [
+          0.01641026241088861,
+          0.017930345467245257,
+          0.022548524953139415
+        ]
+      },
+      "best_set_exact_reproducibility": 1.0,
+      "contaminated_session_ratio": 0,
+      "execution_class_mapping_stable": true,
+      "fingerprint_stable": true,
+      "group_id": "phase2_rmsnorm_residual_silu_decode_bs8_t1_bf16",
+      "pairwise_point_order_reproducibility": 0.9333333333333333,
+      "point_winner_reproducibility": 0.6666666666666666,
+      "session_drift": {
+        "max_class_p50_range": 0.03576755289205624,
+        "median_class_p50_range": 0.027859304765344817,
+        "per_session": [
+          {
+            "max_absolute_class_shift": 0.015496430474905676,
+            "median_relative_shift": 0.004958232936740137,
+            "session_id": "rms_d04"
+          },
+          {
+            "max_absolute_class_shift": 0.006666717610808837,
+            "median_relative_shift": 0.0,
+            "session_id": "rms_d04_r02"
+          },
+          {
+            "max_absolute_class_shift": 0.023763348312443533,
+            "median_relative_shift": -0.020532381134410693,
+            "session_id": "rms_d04_r03"
+          }
+        ]
+      },
+      "session_ids": [
+        "rms_d04",
+        "rms_d04_r02",
+        "rms_d04_r03"
+      ]
+    },
+    {
+      "baseline_to_point_oracle_gain": {
+        "max": 0.013333240201080399,
+        "median": 0.013157899775594117,
+        "min": 0.012987017895738084,
+        "values": [
+          0.012987017895738084,
+          0.013157899775594117,
+          0.013333240201080399
+        ]
+      },
+      "best_set_exact_reproducibility": 0.6666666666666666,
+      "contaminated_session_ratio": 0,
+      "execution_class_mapping_stable": true,
+      "fingerprint_stable": true,
+      "group_id": "phase2_rmsnorm_residual_silu_prefill_bs1_s128_bf16",
+      "pairwise_point_order_reproducibility": 0.8666666666666667,
+      "point_winner_reproducibility": 1.0,
+      "session_drift": {
+        "max_class_p50_range": 0.03164558127857364,
+        "median_class_p50_range": 0.025978417379774132,
+        "per_session": [
+          {
+            "max_absolute_class_shift": 0.01875000682121053,
+            "median_relative_shift": 0.013072458835666101,
+            "session_id": "rms_p03"
+          },
+          {
+            "max_absolute_class_shift": 0.0,
+            "median_relative_shift": 0.0,
+            "session_id": "rms_p03_r02"
+          },
+          {
+            "max_absolute_class_shift": 0.025000009094947262,
+            "median_relative_shift": -0.012743511221605885,
+            "session_id": "rms_p03_r03"
+          }
+        ]
+      },
+      "session_ids": [
+        "rms_p03",
+        "rms_p03_r02",
+        "rms_p03_r03"
+      ]
+    }
+  ],
+  "schema_version": "phase2-family-decision-v1"
+}
