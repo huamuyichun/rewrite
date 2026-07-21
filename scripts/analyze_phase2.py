@@ -132,6 +132,30 @@ def render_markdown(analysis: dict[str, Any]) -> str:
         ]
         for row in analysis["session_audits"]
     ]
+    replication_rows = []
+    for group in analysis["groups"]:
+        if group["num_sessions"] < 2:
+            continue
+        reproducibility = group["session_reproducibility"]
+        gain = reproducibility["baseline_to_point_oracle_gain"]
+        drift = reproducibility["session_drift"]
+        replication_rows.append(
+            [
+                f'`{group["group_id"]}`',
+                group["num_sessions"],
+                _percent(reproducibility["point_winner_reproducibility"]),
+                _percent(reproducibility["best_set_exact_reproducibility"]),
+                _percent(
+                    reproducibility["pairwise_point_order_reproducibility"]
+                ),
+                f'{_percent(gain["median"])} '
+                f'[{_percent(gain["min"])}, {_percent(gain["max"])}]',
+                _percent(drift["max_class_p50_range"]),
+                "yes" if group["execution_class_mapping_stable"] else "no",
+                "yes" if group["fingerprint_stable"] else "no",
+                _percent(group["contaminated_session_ratio"]),
+            ]
+        )
     production_raw_gain = all_scope["production_to_point_oracle_gain"]
     production_noise_gain = all_scope["production_to_noise_aware_oracle_gain"]
     fixed = all_scope["best_fixed_semantic_plan"]
@@ -263,11 +287,44 @@ def render_markdown(analysis: dict[str, Any]) -> str:
         "历史 discovery manifest 未直接写入 Triton 和 CUDA device order；二者由冻结的"
         " environment-domain record 与迁移报告补充绑定。新 runner 已直接记录这些字段。",
         "",
+        "## 跨 Session 复现性",
+        "",
+        (
+            _table(
+                [
+                    "group",
+                    "sessions",
+                    "point winner",
+                    "best-set exact",
+                    "pair order",
+                    "default→point median [min,max]",
+                    "max class drift",
+                    "mapping stable",
+                    "fingerprint stable",
+                    "contaminated",
+                ],
+                replication_rows,
+            )
+            if replication_rows
+            else "尚无 group 拥有两个或以上独立 session。"
+        ),
+        "",
+        "point winner、best-set exact 和 pair order 分别报告点赢家、noise-aware best set"
+        " 完全一致率，以及 15 个 execution-class pair 的 P50 顺序复现率。class drift 是"
+        " 同一 fingerprint class 的跨 session P50 最大相对范围。详细的 per-session"
+        " best set、pairwise order、gain 和 drift 保存在 JSON。",
+        "",
         "## 限制",
         "",
-        "当前每组只有一个完整独立 session。CI 反映 blocked-round measurement uncertainty，"
-        "尚不能证明跨 session 可复现性；family 保留/降级/淘汰决定必须等待 adaptive"
-        " replication 完成。",
+        (
+            "当前每组只有一个完整独立 session。CI 反映 blocked-round measurement uncertainty，"
+            "尚不能证明跨 session 可复现性；family 保留/降级/淘汰决定必须等待 adaptive"
+            " replication 完成。"
+            if not replication_rows
+            else "adaptive groups 的跨 session CI 以 session 为外层 bootstrap 单位；仍只有一个"
+            " session 的非复测 groups 只作为单 session tie/ambiguous evidence。主要结论需等"
+            "预注册 groups 补足三个独立 session。"
+        ),
     ]
     return "\n".join(lines).rstrip() + "\n"
 

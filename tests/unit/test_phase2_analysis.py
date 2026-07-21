@@ -5,6 +5,7 @@ from rewrite_selector.evaluation.phase2_analysis import (
     bootstrap_relative_difference_ci,
     classify_relative_ci,
     semantic_plan_record,
+    summarize_session_reproducibility,
 )
 
 
@@ -97,3 +98,46 @@ def test_fixed_plan_uses_semantic_plan_across_group_local_classes() -> None:
     assert scope["best_fixed_semantic_plan"]["raw_regret"]["max"] == pytest.approx(0.05)
     assert scope["semantic_plan_rows"][0]["possible_win_share"] == pytest.approx(0.5)
 
+
+def test_session_reproducibility_reports_winner_order_gain_and_drift() -> None:
+    def session(
+        session_id: str,
+        first: float,
+        second: float,
+        best: list[str],
+        preference: str,
+    ) -> dict:
+        return {
+            "session_id": session_id,
+            "point_best_class_signature": "cls_a" if first < second else "cls_b",
+            "noise_aware_best_class_signatures": best,
+            "baseline_to_point_oracle_gain": first / min(first, second) - 1.0,
+            "class_p50_ms": {"cls_a": first, "cls_b": second},
+            "pairwise": [
+                {
+                    "first_class_signature": "cls_a",
+                    "second_class_signature": "cls_b",
+                    "point_order": "first_faster" if first < second else "second_faster",
+                    "preference": preference,
+                    "relative_difference": second / first - 1.0,
+                }
+            ],
+        }
+
+    summary = summarize_session_reproducibility(
+        [
+            session("s1", 1.0, 1.03, ["cls_a"], "first_faster"),
+            session("s2", 1.01, 1.02, ["cls_a", "cls_b"], "tie"),
+            session("s3", 1.02, 1.01, ["cls_a", "cls_b"], "ambiguous"),
+        ]
+    )
+    assert summary["replication_target_met"] is True
+    assert summary["point_winner_reproducibility"] == pytest.approx(2 / 3)
+    assert summary["best_set_exact_reproducibility"] == pytest.approx(2 / 3)
+    assert summary["best_set_intersection"] == ["cls_a"]
+    assert summary["pairwise_point_order_reproducibility"] == 0.0
+    assert summary["pairwise_classification_reproducibility"] == 0.0
+    assert summary["baseline_to_point_oracle_gain"]["max"] == pytest.approx(
+        1.02 / 1.01 - 1.0
+    )
+    assert summary["session_drift"]["max_class_p50_range"] == pytest.approx(0.02)

@@ -412,6 +412,218 @@ def _candidate_audit_summary(sessions: list[dict[str, Any]]) -> list[dict[str, A
     return rows
 
 
+def _single_session_selection(
+    session: dict[str, Any],
+    signatures: list[tuple[str, ...]],
+    noise_floor_relative: float,
+    bootstrap_resamples: int,
+    seed: int,
+) -> dict[str, Any]:
+    profile = session["result"]["profile"]
+    class_rows = []
+    for signature in signatures:
+        class_id = session["class_signature_to_id"][signature]
+        summary = profile["candidate_summary"][class_id]
+        class_rows.append(
+            {
+                "signature": signature,
+                "class_signature": stable_id("cls", list(signature)),
+                "execution_class_id": class_id,
+                "p50_ms": float(summary["p50_ms"]),
+            }
+        )
+    by_signature = {row["signature"]: row for row in class_rows}
+    pairwise = []
+    for pair_index, (first_signature, second_signature) in enumerate(
+        itertools.combinations(signatures, 2)
+    ):
+        first = by_signature[first_signature]
+        second = by_signature[second_signature]
+        first_rounds = _round_values(profile, first["execution_class_id"])
+        second_rounds = _round_values(profile, second["execution_class_id"])
+        ci_low, ci_high = bootstrap_relative_difference_ci(
+            [(first_rounds, second_rounds)],
+            bootstrap_resamples,
+            seed + pair_index,
+        )
+        relative = second["p50_ms"] / first["p50_ms"] - 1.0
+        pairwise.append(
+            {
+                "first_class_signature": first["class_signature"],
+                "second_class_signature": second["class_signature"],
+                "relative_difference": relative,
+                "point_order": "first_faster" if relative > 0 else "second_faster",
+                "relative_difference_ci95_low": ci_low,
+                "relative_difference_ci95_high": ci_high,
+                "preference": classify_relative_ci(
+                    ci_low, ci_high, noise_floor_relative
+                ),
+            }
+        )
+    strictly_worse: set[str] = set()
+    for pair in pairwise:
+        if pair["preference"] == "first_faster":
+            strictly_worse.add(pair["second_class_signature"])
+        elif pair["preference"] == "second_faster":
+            strictly_worse.add(pair["first_class_signature"])
+    best_classes = sorted(
+        row["class_signature"]
+        for row in class_rows
+        if row["class_signature"] not in strictly_worse
+    )
+    point_best = min(
+        class_rows, key=lambda row: (row["p50_ms"], row["class_signature"])
+    )
+    production_plan = next(
+        plan_id
+        for plan_id, plan in session["semantic_plan_definitions"].items()
+        if plan["is_production_default"]
+    )
+    production_signature = next(
+        signature for signature in signatures if production_plan in signature
+    )
+    production = by_signature[production_signature]
+    return {
+        "run_id": session["run_id"],
+        "session_id": session["session_id"],
+        "point_best_class_signature": point_best["class_signature"],
+        "point_best_execution_class_id": point_best["execution_class_id"],
+        "noise_aware_best_class_signatures": best_classes,
+        "baseline_to_point_oracle_gain": (
+            production["p50_ms"] / point_best["p50_ms"] - 1.0
+        ),
+        "class_p50_ms": {
+            row["class_signature"]: row["p50_ms"] for row in class_rows
+        },
+        "pairwise": pairwise,
+        "contaminated": bool(session["result"].get("contaminated")),
+    }
+
+
+def summarize_session_reproducibility(
+    session_rows: list[dict[str, Any]],
+) -> dict[str, Any]:
+    if not session_rows:
+        raise ValueError("at least one session row is required")
+    num_sessions = len(session_rows)
+    point_winners = Counter(
+        str(row["point_best_class_signature"]) for row in session_rows
+    )
+    best_sets = Counter(
+        tuple(row["noise_aware_best_class_signatures"]) for row in session_rows
+    )
+    class_signatures = sorted(session_rows[0]["class_p50_ms"])
+    class_medians = {
+        signature: statistics.median(
+            float(row["class_p50_ms"][signature]) for row in session_rows
+        )
+        for signature in class_signatures
+    }
+    per_session_drift = []
+    for row in session_rows:
+        relative_shifts = [
+            float(row["class_p50_ms"][signature]) / class_medians[signature] - 1.0
+            for signature in class_signatures
+        ]
+        per_session_drift.append(
+            {
+                "session_id": row["session_id"],
+                "median_relative_shift": statistics.median(relative_shifts),
+                "max_absolute_class_shift": max(abs(value) for value in relative_shifts),
+            }
+        )
+    class_ranges = [
+        max(float(row["class_p50_ms"][signature]) for row in session_rows)
+        / min(float(row["class_p50_ms"][signature]) for row in session_rows)
+        - 1.0
+        for signature in class_signatures
+    ]
+    pair_keys = [
+        (
+            pair["first_class_signature"],
+            pair["second_class_signature"],
+        )
+        for pair in session_rows[0]["pairwise"]
+    ]
+    pair_rows = []
+    for first_signature, second_signature in pair_keys:
+        observations = []
+        for session in session_rows:
+            pair = next(
+                item
+                for item in session["pairwise"]
+                if item["first_class_signature"] == first_signature
+                and item["second_class_signature"] == second_signature
+            )
+            observations.append(
+                {
+                    "session_id": session["session_id"],
+                    "point_order": pair["point_order"],
+                    "preference": pair["preference"],
+                    "relative_difference": pair["relative_difference"],
+                }
+            )
+        point_orders = {row["point_order"] for row in observations}
+        preferences = {row["preference"] for row in observations}
+        pair_rows.append(
+            {
+                "first_class_signature": first_signature,
+                "second_class_signature": second_signature,
+                "point_order_reproducible": len(point_orders) == 1,
+                "classification_reproducible": len(preferences) == 1,
+                "strict_preference_reproduced": (
+                    len(preferences) == 1
+                    and next(iter(preferences))
+                    in {"first_faster", "second_faster"}
+                ),
+                "per_session": observations,
+            }
+        )
+    best_set_values = [set(row["noise_aware_best_class_signatures"]) for row in session_rows]
+    gains = [float(row["baseline_to_point_oracle_gain"]) for row in session_rows]
+    total_pairs = len(pair_rows)
+    return {
+        "num_sessions": num_sessions,
+        "replication_target_met": num_sessions >= 3,
+        "point_winner_reproducibility": max(point_winners.values()) / num_sessions,
+        "point_winner_counts": dict(sorted(point_winners.items())),
+        "best_set_exact_reproducibility": max(best_sets.values()) / num_sessions,
+        "best_set_counts": [
+            {"class_signatures": list(key), "count": value}
+            for key, value in sorted(best_sets.items())
+        ],
+        "best_set_intersection": sorted(set.intersection(*best_set_values)),
+        "best_set_union": sorted(set.union(*best_set_values)),
+        "pairwise_point_order_reproducibility": (
+            sum(row["point_order_reproducible"] for row in pair_rows) / total_pairs
+            if total_pairs
+            else 1.0
+        ),
+        "pairwise_classification_reproducibility": (
+            sum(row["classification_reproducible"] for row in pair_rows) / total_pairs
+            if total_pairs
+            else 1.0
+        ),
+        "strict_preference_reproduced_pairs": sum(
+            row["strict_preference_reproduced"] for row in pair_rows
+        ),
+        "total_pairwise_comparisons": total_pairs,
+        "pairwise": pair_rows,
+        "baseline_to_point_oracle_gain": {
+            "min": min(gains),
+            "median": statistics.median(gains),
+            "max": max(gains),
+            "values": gains,
+        },
+        "session_drift": {
+            "median_class_p50_range": statistics.median(class_ranges),
+            "max_class_p50_range": max(class_ranges),
+            "per_session": per_session_drift,
+        },
+        "per_session": session_rows,
+    }
+
+
 def aggregate_group(
     sessions: list[dict[str, Any]],
     noise_floor_relative: float,
@@ -535,6 +747,16 @@ def aggregate_group(
     class_mapping_stable = mapping_stable and all(
         row["fingerprint_stable"] for row in class_rows
     )
+    session_rows = [
+        _single_session_selection(
+            session,
+            common_signatures,
+            noise_floor_relative,
+            bootstrap_resamples,
+            group_seed + 20_000 + session_index * 1_000,
+        )
+        for session_index, session in enumerate(sessions)
+    ]
     return {
         "group_id": sessions[0]["group_id"],
         "family_id": sessions[0]["result"]["family_id"],
@@ -595,6 +817,7 @@ def aggregate_group(
         ),
         "fingerprint_stable": class_mapping_stable,
         "execution_class_mapping_stable": mapping_stable,
+        "session_reproducibility": summarize_session_reproducibility(session_rows),
         "same_class_timing_diagnostic_warnings": diagnostic_warnings,
         "all_provenance_complete": all(session["provenance_complete"] for session in sessions),
     }
